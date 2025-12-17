@@ -5,7 +5,7 @@ from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
-User = get_user_model()
+
 
 class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
