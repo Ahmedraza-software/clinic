@@ -1,0 +1,520 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Inventory Management - ClinicMS{% endblock %}
+
+{% block content %}
+<!-- Page Content -->
+<div class="flex-1 overflow-y-auto bg-gray-50 p-6">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-xl font-semibold text-gray-900">Inventory Management</h2>
+            <p class="text-sm text-gray-500">Track items, stock levels and value</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'inventory:add_item' %}" class="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 flex items-center">
+                <i class="fas fa-plus mr-2"></i> Add Item
+            </a>
+            <a href="{% url 'inventory:export_inventory' %}" class="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 flex items-center">
+                <i class="fas fa-file-export mr-2"></i> Export
+            </a>
+        </div>
+    </div>
+
+    <!-- Animations (minimal) -->
+    <style>
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-up { opacity: 0; animation: fadeInUp .5s ease-out forwards; }
+    </style>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-100 p-4 fade-in-up" data-anim style="animation-delay: .05s;">
+            <div class="text-xs text-gray-500">Total Items</div>
+            <div class="mt-1 text-2xl font-semibold text-gray-900"><span class="countup" data-target="{{ total_items|default:0 }}" data-decimals="0">{{ total_items|intcomma }}</span></div>
+            <div class="text-xs text-gray-400">In inventory</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 fade-in-up" data-anim style="animation-delay: .1s;">
+            <div class="text-xs text-gray-500">Low Stock</div>
+            <div class="mt-1 text-2xl font-semibold text-yellow-600"><span class="countup" data-target="{{ low_stock_items|default:0 }}" data-decimals="0">{{ low_stock_items|intcomma }}</span></div>
+            <div class="text-xs text-yellow-600">Items need attention</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 fade-in-up" data-anim style="animation-delay: .15s;">
+            <div class="text-xs text-gray-500">Out of Stock</div>
+            <div class="mt-1 text-2xl font-semibold text-red-600"><span class="countup" data-target="{{ out_of_stock_items|default:0 }}" data-decimals="0">{{ out_of_stock_items|intcomma }}</span></div>
+            <div class="text-xs text-red-600">Items need restocking</div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 fade-in-up" data-anim style="animation-delay: .2s;">
+            <div class="text-xs text-gray-500">Total Value</div>
+            <div class="mt-1 text-2xl font-semibold text-gray-900">$<span class="countup" data-target="{{ total_value|default:0 }}" data-decimals="0">{{ total_value|intcomma }}</span></div>
+            <div class="text-xs text-gray-400">Current inventory value</div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-100 p-4 fade-in-up" data-anim style="animation-delay: .25s;">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-medium text-gray-900">Inventory Status</h3>
+                <span class="text-xs text-gray-400">Overview</span>
+            </div>
+            <div class="h-56">
+                <canvas id="inventoryStatusChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 fade-in-up" data-anim style="animation-delay: .3s;">
+            <h3 class="text-sm font-medium text-gray-900 mb-3">Top Items</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-xs text-gray-500 mb-2">By Quantity</div>
+                    <ul class="space-y-2">
+                        {% for i in top_items_by_quantity %}
+                        <li class="flex items-center justify-between">
+                            <span class="text-sm text-gray-800 truncate">{{ i.name }}</span>
+                            <span class="text-sm text-gray-600">{{ i.quantity_in_stock }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="text-xs text-gray-400">No data</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-500 mb-2">By Value</div>
+                    <ul class="space-y-2">
+                        {% for i in top_items_by_value %}
+                        <li class="flex items-center justify-between">
+                            <span class="text-sm text-gray-800 truncate">{{ i.name }}</span>
+                            <span class="text-sm text-gray-600">${{ i.total_value|floatformat:0|intcomma }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="text-xs text-gray-400">No data</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden fade-in-up" data-anim style="animation-delay: .35s;">
+        <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h3 class="text-base font-medium text-gray-900">Inventory Items</h3>
+            <form method="get" class="flex flex-wrap items-center gap-2" id="inventoryFilters">
+                <input id="invSearch" type="text" name="search" value="{{ search_query }}" placeholder="Search items..." class="text-sm border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:ring-blue-500" />
+                <select name="category" class="text-sm border border-gray-300 rounded-md px-2 py-2 focus:border-blue-500 focus:ring-blue-500">
+                    <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
+                    {% for c in categories %}
+                        <option value="{{ c.name }}" {% if current_category == c.name %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="status" class="text-sm border border-gray-300 rounded-md px-2 py-2 focus:border-blue-500 focus:ring-blue-500">
+                    <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Status</option>
+                    <option value="in_stock" {% if current_status == 'in_stock' %}selected{% endif %}>In Stock</option>
+                    <option value="low_stock" {% if current_status == 'low_stock' %}selected{% endif %}>Low Stock</option>
+                    <option value="out_of_stock" {% if current_status == 'out_of_stock' %}selected{% endif %}>Out of Stock</option>
+                </select>
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Cost</th>
+                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for item in items %}
+                    <tr class="hover:bg-gray-50 fade-in-up" data-anim style="animation-delay: {{ forloop.counter0|add:1 }}0ms;">
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-md flex items-center justify-center">
+                                    {% if item.category.name == 'Medications' %}
+                                        <i class="fas fa-pills text-blue-500"></i>
+                                    {% elif item.category.name == 'Equipment' %}
+                                        <i class="fas fa-stethoscope text-green-500"></i>
+                                    {% elif item.category.name == 'Emergency' %}
+                                        <i class="fas fa-ambulance text-red-500"></i>
+                                    {% elif item.category.name == 'Laboratory' %}
+                                        <i class="fas fa-flask text-purple-500"></i>
+                                    {% elif item.category.name == 'Surgical' %}
+                                        <i class="fas fa-cut text-orange-500"></i>
+                                    {% else %}
+                                        <i class="fas fa-box text-gray-500"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3">
+                                    <div class="text-sm font-medium text-gray-900">{{ item.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ item.barcode|default:"No barcode" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if item.category.name == 'Medications' %}bg-blue-100 text-blue-800
+                                {% elif item.category.name == 'Equipment' %}bg-green-100 text-green-800
+                                {% elif item.category.name == 'Emergency' %}bg-red-100 text-red-800
+                                {% elif item.category.name == 'Laboratory' %}bg-purple-100 text-purple-800
+                                {% elif item.category.name == 'Surgical' %}bg-orange-100 text-orange-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ item.category.name }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <div class="text-sm {% if item.quantity_in_stock <= item.minimum_quantity %}text-red-600 font-semibold{% elif item.quantity_in_stock == 0 %}text-red-800 font-bold{% else %}text-gray-900{% endif %}">
+                                {{ item.quantity_in_stock }}
+                                {% if item.quantity_in_stock <= item.minimum_quantity and item.quantity_in_stock > 0 %}
+                                    <i class="fas fa-exclamation-triangle text-yellow-500 ml-1"></i>
+                                {% elif item.quantity_in_stock == 0 %}
+                                    <i class="fas fa-times-circle text-red-500 ml-1"></i>
+                                {% endif %}
+                            </div>
+                            <div class="text-xs text-gray-500">Min: {{ item.minimum_quantity }}</div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            {{ item.unit }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                            ${{ item.price_per_unit|floatformat:2 }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                            ${{ item.total_value|floatformat:2 }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                            <button onclick="openStockModal({{ item.id }}, '{{ item.name|escapejs }}', {{ item.quantity_in_stock }})" class="text-green-600 hover:text-green-900 mr-3" title="Update Stock">
+                                <i class="fas fa-plus-minus"></i>
+                            </button>
+                            <a href="{% url 'inventory:stock_movements' item.id %}" class="text-blue-600 hover:text-blue-900 mr-3" title="View History">
+                                <i class="fas fa-history"></i>
+                            </a>
+                            <button class="text-red-600 hover:text-red-900" title="Delete Item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center">
+                                <i class="fas fa-boxes text-4xl text-gray-300 mb-4"></i>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No inventory items yet</h3>
+                                <p class="text-sm text-gray-500 mb-4">Start building your medical inventory by adding your first item.</p>
+                                <a href="{% url 'inventory:add_item' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add Your First Item
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="flex-1 flex justify-between sm:hidden">
+                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Previous
+                </a>
+                <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Next
+                </a>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing
+                        <span class="font-medium">{{ items.start_index }}</span>
+                        to
+                        <span class="font-medium">{{ items.end_index }}</span>
+                        of
+                        <span class="font-medium">{{ items.paginator.count }}</span>
+                        results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            1
+                        </a>
+                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            2
+                        </a>
+                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            3
+                        </a>
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                            ...
+                        </span>
+                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            8
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Inventory Status Chart (guarded)
+    try {
+        const statusCanvas = document.getElementById('inventoryStatusChart');
+        if (statusCanvas) {
+            const inventoryStatusCtx = statusCanvas.getContext('2d');
+            const inventoryStatusChart = new Chart(inventoryStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['In Stock', 'Low Stock', 'Out of Stock'],
+            datasets: [{
+                data: [65, 20, 15],
+                backgroundColor: [
+                    'rgba(79, 70, 229, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ],
+                borderWidth: 0,
+                offset: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                }
+            },
+            cutout: '70%',
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            }
+        }
+    });
+        }
+    } catch (e) {
+        console.log('Chart initialization error:', e);
+    }
+
+    // Filters: auto-apply and debounced search
+    (function(){
+        try {
+            const form = document.getElementById('inventoryFilters');
+            if (!form) return;
+            const search = document.getElementById('invSearch');
+            const selects = form.querySelectorAll('select[name="category"], select[name="status"]');
+            let t;
+            if (search){
+                search.addEventListener('input', function(){
+                    clearTimeout(t);
+                    t = setTimeout(() => form.submit(), 400);
+                });
+                search.addEventListener('keydown', function(e){
+                    if (e.key === 'Enter') { e.preventDefault(); form.submit(); }
+                });
+            }
+            selects.forEach(sel => sel.addEventListener('change', () => form.submit()));
+        } catch (e) {
+            console.log('Filter initialization error:', e);
+        }
+    })();
+
+    // Stock Update Modal Functions
+    function openStockModal(itemId, itemName, currentStock) {
+        document.getElementById('stockItemId').value = itemId;
+        document.getElementById('stockItemName').textContent = itemName;
+        document.getElementById('stockCurrentStock').textContent = currentStock;
+        
+        // Set form action dynamically
+        const form = document.getElementById('stockForm');
+        form.action = `/inventory/update-stock/${itemId}/`;
+        
+        document.getElementById('stockModal').classList.remove('hidden');
+        
+        // Update quantity field behavior based on movement type
+        const movementType = document.getElementById('movement_type');
+        const quantityField = document.getElementById('quantity');
+        const quantityLabel = document.querySelector('label[for="quantity"]');
+        
+        movementType.addEventListener('change', function() {
+            if (this.value === 'ADJUST') {
+                quantityLabel.textContent = 'New Total Quantity';
+                quantityField.placeholder = 'Enter the new total stock amount';
+                quantityField.min = '0';
+            } else if (this.value === 'IN') {
+                quantityLabel.textContent = 'Quantity to Add';
+                quantityField.placeholder = 'Enter amount to add to stock';
+                quantityField.min = '1';
+            } else { // OUT
+                quantityLabel.textContent = 'Quantity to Remove';
+                quantityField.placeholder = 'Enter amount to remove from stock';
+                quantityField.min = '1';
+                quantityField.max = currentStock;
+            }
+        });
+    }
+
+    function closeStockModal() {
+        document.getElementById('stockModal').classList.add('hidden');
+        document.getElementById('stockForm').reset();
+    }
+
+    // Submit stock update - using traditional form submission for now
+    try {
+        const stockForm = document.getElementById('stockForm');
+        if (stockForm) {
+            stockForm.addEventListener('submit', function(e) {
+        const quantity = document.getElementById('quantity').value;
+        const movementType = document.getElementById('movement_type').value;
+        
+        // Basic validation
+        if (!quantity || quantity <= 0) {
+            e.preventDefault();
+            alert('Please enter a valid quantity');
+            return;
+        }
+        
+        if (!movementType) {
+            e.preventDefault();
+            alert('Please select a movement type');
+            return;
+        }
+        
+        // Let the form submit normally - it will redirect back to dashboard
+        console.log('Submitting stock update form...');
+    });
+        }
+    } catch (e) {
+        console.log('Stock form initialization error:', e);
+    }
+
+    // Counter animation for summary metrics (runs independently)
+    function formatNumber(value, decimals) {
+        const opts = { minimumFractionDigits: decimals, maximumFractionDigits: decimals };
+        return Number(value).toLocaleString('en-US', opts);
+    }
+
+    function animateCount(el, target, decimals = 0, duration = 1200) {
+        const startTime = performance.now();
+        const start = 0;
+        function tick(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // easeOutCubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = start + (target - start) * eased;
+            el.textContent = formatNumber(current, decimals);
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    }
+
+    // Counter animation - run on page load
+    try {
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, starting counter animations...');
+            const counters = document.querySelectorAll('.countup');
+            console.log('Found counters:', counters.length);
+            counters.forEach((el, index) => {
+                const target = parseFloat(el.getAttribute('data-target') || '0');
+                const decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+                console.log(`Counter ${index}: target=${target}, decimals=${decimals}`);
+                animateCount(el, target, decimals);
+            });
+        });
+    } catch (e) {
+        console.log('Counter animation error:', e);
+    }
+</script>
+{% endblock %}
+
+<!-- Stock Update Modal -->
+<div id="stockModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between pb-4 border-b">
+                <h3 class="text-lg font-medium text-gray-900">Update Stock</h3>
+                <button onclick="closeStockModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="stockForm" class="mt-4" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="stockItemId" name="item_id">
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Item</label>
+                    <p id="stockItemName" class="text-sm text-gray-900 font-semibold"></p>
+                    <p class="text-xs text-gray-500">Current Stock: <span id="stockCurrentStock"></span></p>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="movement_type" class="block text-sm font-medium text-gray-700 mb-2">Action</label>
+                    <select name="movement_type" id="movement_type" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="IN">Stock In (Add to current stock)</option>
+                        <option value="OUT">Stock Out (Remove from current stock)</option>
+                        <option value="ADJUST">Adjust to Exact Amount</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                    <input type="number" name="quantity" id="quantity" min="1" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Enter quantity">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="reference" class="block text-sm font-medium text-gray-700 mb-2">Reference</label>
+                    <input type="text" name="reference" id="reference" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="e.g., PO-1234, Usage, etc.">
+                </div>
+                
+                <div class="mb-6">
+                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea name="notes" id="notes" rows="2" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Optional notes"></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeStockModal()" 
+                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Update Stock
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}

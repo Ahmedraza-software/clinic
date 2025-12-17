@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Appointments - {{ patient.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-900">
+                    <i class="far fa-calendar-alt mr-2 text-blue-600"></i>
+                    My Appointments
+                </h1>
+                <a href="{% url 'patients:dashboard' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Filters -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Filter Appointments</h3>
+                <form method="get" class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                    <div class="sm:col-span-2">
+                        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="status" name="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="">All Status</option>
+                            <option value="scheduled" {% if status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                            <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="date_from" class="block text-sm font-medium text-gray-700">From Date</label>
+                        <input type="date" id="date_from" name="date_from" value="{{ date_from }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="date_to" class="block text-sm font-medium text-gray-700">To Date</label>
+                        <input type="date" id="date_to" name="date_to" value="{{ date_to }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                    <div class="sm:col-span-6 flex justify-end space-x-3">
+                        <a href="{% url 'patients:appointment_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Reset
+                        </a>
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Upcoming Appointments -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Upcoming Appointments
+                </h3>
+            </div>
+            {% if upcoming_appointments %}
+                <ul class="divide-y divide-gray-200">
+                    {% for appointment in upcoming_appointments %}
+                        <li class="hover:bg-gray-50">
+                            <a href="#" class="block hover:bg-gray-50">
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-medium text-blue-600 truncate">
+                                            {{ appointment.doctor.user.get_full_name }}
+                                        </p>
+                                        <div class="ml-2 flex-shrink-0 flex">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                {{ appointment.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 sm:flex sm:justify-between">
+                                        <div class="sm:flex">
+                                            <p class="flex items-center text-sm text-gray-500">
+                                                <i class="far fa-calendar mr-1.5 h-4 w-4 text-gray-400"></i>
+                                                {{ appointment.appointment_date|date:"F j, Y" }}
+                                            </p>
+                                            <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                                <i class="far fa-clock mr-1.5 h-4 w-4 text-gray-400"></i>
+                                                {{ appointment.appointment_time|time:"g:i A" }}
+                                            </p>
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                            <i class="fas fa-stethoscope mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            {{ appointment.doctor.specialization.first.name|default:"General" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="px-4 py-5 sm:p-6 text-center">
+                    <i class="far fa-calendar-plus text-4xl text-gray-400 mb-3"></i>
+                    <h3 class="text-lg font-medium text-gray-900">No upcoming appointments</h3>
+                    <p class="mt-1 text-sm text-gray-500">You don't have any upcoming appointments scheduled.</p>
+                    <div class="mt-6">
+                        <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i class="fas fa-plus -ml-1 mr-2 h-5 w-5"></i>
+                            Book Appointment
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Past Appointments -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Past Appointments
+                </h3>
+            </div>
+            {% if past_appointments %}
+                <ul class="divide-y divide-gray-200">
+                    {% for appointment in past_appointments|slice:":5" %}
+                        <li class="hover:bg-gray-50">
+                            <a href="#" class="block hover:bg-gray-50">
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-medium text-blue-600 truncate">
+                                            {{ appointment.doctor.user.get_full_name }}
+                                        </p>
+                                        <div class="ml-2 flex-shrink-0 flex">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if appointment.status == 'completed' %}bg-green-100 text-green-800{% elif appointment.status == 'cancelled' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {{ appointment.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 sm:flex sm:justify-between">
+                                        <div class="sm:flex">
+                                            <p class="flex items-center text-sm text-gray-500">
+                                                <i class="far fa-calendar mr-1.5 h-4 w-4 text-gray-400"></i>
+                                                {{ appointment.appointment_date|date:"F j, Y" }}
+                                            </p>
+                                            <p class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                                                <i class="far fa-clock mr-1.5 h-4 w-4 text-gray-400"></i>
+                                                {{ appointment.appointment_time|time:"g:i A" }}
+                                            </p>
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                                            <i class="fas fa-stethoscope mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            {{ appointment.doctor.specialization.first.name|default:"General" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% if past_appointments|length > 5 %}
+                    <div class="px-4 py-4 sm:px-6 border-t border-gray-200 text-center">
+                        <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                            View all past appointments
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="px-4 py-5 sm:p-6 text-center">
+                    <i class="far fa-calendar-check text-4xl text-gray-400 mb-3"></i>
+                    <h3 class="text-lg font-medium text-gray-900">No past appointments</h3>
+                    <p class="mt-1 text-sm text-gray-500">Your past appointments will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

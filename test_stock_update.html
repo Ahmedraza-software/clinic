@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Stock Update</title>
+</head>
+<body>
+    <h1>Test Stock Update</h1>
+    
+    <form action="/inventory/update-stock/21/" method="POST">
+        <input type="hidden" name="csrfmiddlewaretoken" value="test">
+        
+        <label>Movement Type:</label>
+        <select name="movement_type" required>
+            <option value="IN">Stock In</option>
+            <option value="OUT">Stock Out</option>
+            <option value="ADJUST">Adjust</option>
+        </select><br><br>
+        
+        <label>Quantity:</label>
+        <input type="number" name="quantity" value="10" required><br><br>
+        
+        <label>Reference:</label>
+        <input type="text" name="reference" value="Test Update"><br><br>
+        
+        <label>Notes:</label>
+        <textarea name="notes">Test stock update</textarea><br><br>
+        
+        <button type="submit">Update Stock</button>
+    </form>
+    
+    <script>
+        // Test the JavaScript fetch approach
+        function testFetch() {
+            const formData = new FormData();
+            formData.append('movement_type', 'IN');
+            formData.append('quantity', '5');
+            formData.append('reference', 'JS Test');
+            formData.append('notes', 'JavaScript test');
+            
+            fetch('/inventory/update-stock/21/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': 'test'
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.text();
+            })
+            .then(text => {
+                console.log('Response:', text);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+    
+    <button onclick="testFetch()">Test with JavaScript</button>
+</body>
+</html>

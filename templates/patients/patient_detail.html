@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ patient.user.get_full_name }} - Patient Details{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    {{ patient.user.get_full_name }}
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                    Patient Details
+                </p>
+            </div>
+            <div class="space-x-2">
+                <a href="{% url 'patients:patient_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Back to Patients
+                </a>
+                <a href="{% url 'patients:edit' patient.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Edit
+                </a>
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-200">
+            <dl>
+                <!-- Personal Information -->
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Personal Information</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="font-medium">Full Name</p>
+                                <p>{{ patient.user.get_full_name }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Email</p>
+                                <p>{{ patient.user.email }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Date of Birth</p>
+                                <p>{{ patient.date_of_birth|date:"F j, Y"|default:"Not specified" }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Gender</p>
+                                <p>{{ patient.get_gender_display|default:"Not specified" }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Blood Group</p>
+                                <p>{{ patient.blood_group|default:"Not specified" }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Phone</p>
+                                <p>{{ patient.phone_number|default:"Not specified" }}</p>
+                            </div>
+                        </div>
+                    </dd>
+                </div>
+
+                <!-- Medical Information -->
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Medical Information</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="font-medium">Allergies</p>
+                                <p>{{ patient.allergies|default:"None recorded"|linebreaksbr }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Current Medications</p>
+                                <p>{{ patient.current_medications|default:"None"|linebreaksbr }}</p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="font-medium">Medical History</p>
+                                <p>{{ patient.past_medical_history|default:"No medical history recorded"|linebreaksbr }}</p>
+                            </div>
+                        </div>
+                    </dd>
+                </div>
+
+                <!-- Emergency Contact -->
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Emergency Contact</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="font-medium">Name</p>
+                                <p>{{ patient.emergency_contact_name|default:"Not specified" }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Relationship</p>
+                                <p>{{ patient.emergency_contact_relation|default:"Not specified" }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Phone</p>
+                                <p>{{ patient.emergency_contact_phone|default:"Not specified" }}</p>
+                            </div>
+                        </div>
+                    </dd>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Additional Information</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="font-medium">Occupation</p>
+                                <p>{{ patient.occupation|default:"Not specified" }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Marital Status</p>
+                                <p>{{ patient.get_marital_status_display|default:"Not specified" }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Account Created</p>
+                                <p>{{ patient.user.date_joined|date:"F j, Y" }}</p>
+                            </div>
+                            <div>
+                                <p class="font-medium">Status</p>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if patient.status == 'active' %}bg-green-100 text-green-800">
+                                        Active
+                                    {% elif patient.status == 'discharged' %}bg-blue-100 text-blue-800">
+                                        Discharged
+                                    {% else %}bg-gray-100 text-gray-800">
+                                        Inactive
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Payment History
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                    All payments made by this patient
+                </p>
+            </div>
+            <div class="text-sm text-gray-500">
+                Total Paid: <span class="font-semibold text-green-600">${{ total_payments|floatformat:2|default:"0.00" }}</span>
+            </div>
+        </div>
+        <div class="border-t border-gray-200">
+            {% if patient.payments.all %}
+                <ul class="divide-y divide-gray-200">
+                    {% for payment in patient.payments.all %}
+                    <li class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ payment.get_payment_type_display }}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                    {{ payment.get_payment_method_display }} • {{ payment.payment_date|date:"F j, Y g:i A" }}
+                                    {% if payment.notes %}
+                                        <br><span class="text-xs">{{ payment.notes }}</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="ml-4 flex-shrink-0">
+                                <span class="text-lg font-semibold text-green-600">
+                                    ${{ payment.amount|floatformat:2 }}
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="px-4 py-5 sm:p-6 text-center">
+                    <div class="text-gray-400 mb-2">
+                        <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                    </div>
+                    <p class="text-gray-500">No payments recorded yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Patient Discharge Section -->
+    {% if user.is_staff and patient.status == 'active' %}
+    <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 bg-orange-50">
+            <h3 class="text-lg leading-6 font-medium text-orange-900">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                Patient Discharge
+            </h3>
+            <p class="mt-1 text-sm text-orange-700">
+                Discharge this patient and process final payment if needed
+            </p>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+            <form method="post" action="{% url 'patients:discharge' patient.id %}" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Final Payment Section -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-blue-900 mb-3">
+                        <i class="fas fa-money-bill-wave mr-2"></i>
+                        Final Payment (Optional)
+                    </h4>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="final_payment_amount" class="block text-sm font-medium text-gray-700">
+                                Payment Amount
+                            </label>
+                            <div class="mt-1 relative">
+                                <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                <input type="number" name="final_payment_amount" id="final_payment_amount"
+                                    class="pl-8 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    placeholder="0.00" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="final_payment_method" class="block text-sm font-medium text-gray-700">
+                                Payment Method
+                            </label>
+                            <select name="final_payment_method" id="final_payment_method"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="">No Payment</option>
+                                <option value="cash">Cash</option>
+                                <option value="card">Credit/Debit Card</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="insurance">Insurance</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="discharge_notes" class="block text-sm font-medium text-gray-700">
+                                Discharge Notes
+                            </label>
+                            <textarea name="discharge_notes" id="discharge_notes" rows="3"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                placeholder="Final payment details, discharge summary, or other notes..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmation -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">
+                                Confirm Patient Discharge
+                            </h3>
+                            <div class="mt-2 text-sm text-yellow-700">
+                                <p>This will change the patient's status to "Discharged". This action can be reversed later if needed.</p>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center">
+                                    <input id="confirm_discharge" name="confirm_discharge" type="checkbox" required
+                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <label for="confirm_discharge" class="ml-2 text-sm text-yellow-700">
+                                        I confirm that this patient is ready for discharge
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="window.location.reload()" 
+                        class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        Discharge Patient
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% elif patient.status == 'discharged' %}
+    <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 bg-green-50">
+            <h3 class="text-lg leading-6 font-medium text-green-900">
+                <i class="fas fa-check-circle mr-2"></i>
+                Patient Status: Discharged
+            </h3>
+            <p class="mt-1 text-sm text-green-700">
+                This patient has been discharged on {{ patient.updated_at|date:"F j, Y \a\t g:i A" }}
+            </p>
+        </div>
+        {% if user.is_staff %}
+        <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+            <form method="post" action="{% url 'patients:reactivate' patient.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" 
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-undo mr-2"></i>
+                    Reactivate Patient
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Recent Appointments -->
+    <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Recent Appointments
+            </h3>
+        </div>
+        <div class="border-t border-gray-200">
+            {% if recent_appointments %}
+                <ul class="divide-y divide-gray-200">
+                    {% for appointment in recent_appointments %}
+                    <li class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-blue-600 truncate">
+                                    {{ appointment.doctor.user.get_full_name }}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                    {{ appointment.get_status_display }} • {{ appointment.appointment_date|date:"F j, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}
+                                </p>
+                            </div>
+                            <div class="ml-4 flex-shrink-0">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if appointment.status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif appointment.status == 'cancelled' %}bg-red-100 text-red-800
+                                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                    {{ appointment.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="px-4 py-4 sm:px-6 border-t border-gray-200">
+                    <a href="{% url 'patients:appointment_list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                        View all appointments <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            {% else %}
+                <div class="px-4 py-5 sm:p-6 text-center">
+                    <p class="text-gray-500">No recent appointments found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

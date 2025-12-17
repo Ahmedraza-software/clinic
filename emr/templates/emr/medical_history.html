@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Patient Medical History - Clinic Management System{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .medical-history-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .history-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    .history-header {
+        background-color: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .history-body {
+        padding: 1.5rem;
+    }
+    .history-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .history-item:last-child {
+        border-bottom: none;
+    }
+    .no-history {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-area flex-1 flex flex-col overflow-hidden">
+    <!-- Page Content -->
+    <main class="flex-1 overflow-y-auto bg-gray-50">
+        <div class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="text-2xl font-semibold text-gray-900 mb-6">Patient Medical History</h1>
+                
+                <div class="medical-history-container">
+                    <!-- Patient Information -->
+                    <div class="history-card mb-6">
+                        <div class="history-header">
+                            <h2 class="text-lg font-medium">Patient Information</h2>
+                        </div>
+                        <div class="history-body">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Name</p>
+                                    <p class="font-medium">John Doe</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Date of Birth</p>
+                                    <p class="font-medium">January 1, 1980</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Blood Type</p>
+                                    <p class="font-medium">O+</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Last Visit</p>
+                                    <p class="font-medium">November 5, 2025</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medical History -->
+                    <div class="history-card">
+                        <div class="history-header flex justify-between items-center">
+                            <h2 class="text-lg font-medium">Medical History</h2>
+                            <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                Add New Record
+                            </button>
+                        </div>
+                        <div class="history-body">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diagnosis</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th scope="col" class="relative px-6 py-3">
+                                                <span class="sr-only">Actions</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-11-05</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Consultation</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Dr. Smith</td>
+                                            <td class="px-6 py-4 text-sm text-gray-900">Annual Checkup</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <a href="#" class="text-blue-600 hover:text-blue-900">View</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-10-15</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Lab Test</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Dr. Johnson</td>
+                                            <td class="px-6 py-4 text-sm text-gray-900">Blood Work</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <a href="#" class="text-blue-600 hover:text-blue-900">View</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-09-20</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Procedure</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Dr. Williams</td>
+                                            <td class="px-6 py-4 text-sm text-gray-900">Minor Surgery</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <a href="#" class="text-blue-600 hover:text-blue-900">View</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Allergies -->
+                    <div class="history-card mt-6">
+                        <div class="history-header flex justify-between items-center">
+                            <h2 class="text-lg font-medium">Allergies</h2>
+                            <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                Add Allergy
+                            </button>
+                        </div>
+                        <div class="history-body">
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">Penicillin</span>
+                                <span class="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">Peanuts</span>
+                                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">Dust Mites</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medications -->
+                    <div class="history-card mt-6">
+                        <div class="history-header flex justify-between items-center">
+                            <h2 class="text-lg font-medium">Current Medications</h2>
+                            <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                Add Medication
+                            </button>
+                        </div>
+                        <div class="history-body">
+                            <div class="space-y-4">
+                                <div class="p-4 bg-blue-50 rounded-lg">
+                                    <div class="flex justify-between">
+                                        <h3 class="font-medium">Lisinopril</h3>
+                                        <span class="text-sm text-gray-500">10mg daily</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">For high blood pressure</p>
+                                    <p class="text-xs text-gray-500 mt-2">Prescribed by Dr. Smith on 2025-10-15</p>
+                                </div>
+                                <div class="p-4 bg-blue-50 rounded-lg">
+                                    <div class="flex justify-between">
+                                        <h3 class="font-medium">Atorvastatin</h3>
+                                        <span class="text-sm text-gray-500">20mg at bedtime</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">For high cholesterol</p>
+                                    <p class="text-xs text-gray-500 mt-2">Prescribed by Dr. Johnson on 2025-09-20</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add any JavaScript functionality here
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Medical history page loaded');
+    });
+</script>
+{% endblock %}

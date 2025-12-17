@@ -1,0 +1,664 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Medical History - {{ patient.full_name }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* Hide sidebar and header for compact view */
+#sidebar ul.nav.flex-column { display: none !important; }
+#sidebar .position-sticky { padding-top: 0 !important; }
+main.col-md-9.ms-sm-auto.col-lg-10.px-md-4 > .d-flex.border-bottom { display: none !important; }
+
+/* Main Container */
+.create-history-container {
+    max-width: 1200px;
+    margin: 0;
+    margin-left: 2rem;
+    padding: 1rem;
+}
+
+/* Header Section */
+.page-header {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-subtitle {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    margin: 0.5rem 0 0 0;
+}
+
+/* Patient Info Card */
+.patient-info-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.patient-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.patient-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.patient-id {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Form Sections */
+.form-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.section-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.section-icon.medical {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #2563eb;
+}
+
+.section-icon.allergy {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #d97706;
+}
+
+.section-icon.medication {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #059669;
+}
+
+/* Form Elements */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-input, .form-select, .form-textarea {
+    padding: 0.75rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Checkbox Groups */
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.checkbox-item:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #059669;
+}
+
+.checkbox-item label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #f3f4f6;
+}
+
+.btn-action {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #047857, #065f46);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #374151;
+    text-decoration: none;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.progress-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.progress-step.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .create-history-container {
+        margin-left: 1rem;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .create-history-container {
+        margin-left: 0.5rem;
+        padding: 0.5rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .checkbox-group {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-area flex-1 flex flex-col overflow-hidden">
+    <div class="create-history-container">
+        
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-plus-circle"></i>
+                Create Medical History
+            </h1>
+            <p class="page-subtitle">Set up initial medical history for {{ patient.full_name }}</p>
+        </div>
+        
+        <!-- Progress Indicator -->
+        <div class="progress-indicator">
+            <div class="progress-step active">
+                <i class="fas fa-user-md"></i>
+                Creating Medical History
+            </div>
+        </div>
+        
+        <!-- Patient Information -->
+        <div class="patient-info-card">
+            <div class="patient-info-header">
+                <h2 class="patient-name">{{ patient.full_name|title }}</h2>
+                <span class="patient-id">P-{{ patient.id }}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Date of Birth</span>
+                    <div style="font-size: 0.875rem; font-weight: 600; color: #111827;">{{ patient.date_of_birth|date:"F j, Y" }}</div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Age</span>
+                    <div style="font-size: 0.875rem; font-weight: 600; color: #111827;">{{ patient.age }} years</div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Blood Type</span>
+                    <div style="font-size: 0.875rem; font-weight: 600; color: #111827;">{{ patient.blood_group|default:"Not specified" }}</div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase;">Gender</span>
+                    <div style="font-size: 0.875rem; font-weight: 600; color: #111827;">{{ patient.get_gender_display }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <form method="post" id="createHistoryForm">
+            {% csrf_token %}
+            
+            <!-- Common Medical Conditions -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <div class="section-icon medical">
+                            <i class="fas fa-stethoscope"></i>
+                        </div>
+                        Common Medical Conditions
+                    </h3>
+                </div>
+                <p style="color: #6b7280; margin-bottom: 1rem;">Select any conditions that apply to this patient:</p>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="conditions" value="hypertension" id="hypertension">
+                        <label for="hypertension">Hypertension (High Blood Pressure)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="conditions" value="diabetes" id="diabetes">
+                        <label for="diabetes">Diabetes</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="conditions" value="asthma" id="asthma">
+                        <label for="asthma">Asthma</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="conditions" value="heart_disease" id="heart_disease">
+                        <label for="heart_disease">Heart Disease</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="conditions" value="arthritis" id="arthritis">
+                        <label for="arthritis">Arthritis</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="conditions" value="depression" id="depression">
+                        <label for="depression">Depression/Anxiety</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="conditions" value="migraine" id="migraine">
+                        <label for="migraine">Migraine</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="conditions" value="thyroid" id="thyroid">
+                        <label for="thyroid">Thyroid Disorder</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Allergies -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <div class="section-icon allergy">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        Common Allergies
+                    </h3>
+                </div>
+                <p style="color: #6b7280; margin-bottom: 1rem;">Select any known allergies:</p>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="allergies" value="penicillin" id="allergy_penicillin">
+                        <label for="allergy_penicillin">Penicillin</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="allergies" value="peanuts" id="allergy_peanuts">
+                        <label for="allergy_peanuts">Peanuts</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="allergies" value="shellfish" id="allergy_shellfish">
+                        <label for="allergy_shellfish">Shellfish</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="allergies" value="latex" id="allergy_latex">
+                        <label for="allergy_latex">Latex</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="allergies" value="dust_mites" id="allergy_dust">
+                        <label for="allergy_dust">Dust Mites</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="allergies" value="pollen" id="allergy_pollen">
+                        <label for="allergy_pollen">Pollen</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="allergies" value="eggs" id="allergy_eggs">
+                        <label for="allergy_eggs">Eggs</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="allergies" value="milk" id="allergy_milk">
+                        <label for="allergy_milk">Milk/Dairy</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Medications -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <div class="section-icon medication">
+                            <i class="fas fa-pills"></i>
+                        </div>
+                        Common Medications
+                    </h3>
+                </div>
+                <p style="color: #6b7280; margin-bottom: 1rem;">Select any medications the patient is currently taking:</p>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="medications" value="lisinopril" id="med_lisinopril">
+                        <label for="med_lisinopril">Lisinopril (Blood Pressure)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="medications" value="metformin" id="med_metformin">
+                        <label for="med_metformin">Metformin (Diabetes)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="medications" value="atorvastatin" id="med_atorvastatin">
+                        <label for="med_atorvastatin">Atorvastatin (Cholesterol)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="medications" value="albuterol" id="med_albuterol">
+                        <label for="med_albuterol">Albuterol (Asthma)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="medications" value="omeprazole" id="med_omeprazole">
+                        <label for="med_omeprazole">Omeprazole (Acid Reflux)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="medications" value="ibuprofen" id="med_ibuprofen">
+                        <label for="med_ibuprofen">Ibuprofen (Pain Relief)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="medications" value="levothyroxine" id="med_levothyroxine">
+                        <label for="med_levothyroxine">Levothyroxine (Thyroid)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="medications" value="multivitamin" id="med_multivitamin">
+                        <label for="med_multivitamin">Multivitamin</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Notes -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <div class="section-icon medical">
+                            <i class="fas fa-notes-medical"></i>
+                        </div>
+                        Additional Information
+                    </h3>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Family Medical History</label>
+                        <textarea name="family_history" class="form-textarea" placeholder="Any relevant family medical history..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea name="additional_notes" class="form-textarea" placeholder="Any other relevant medical information..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{% url 'emr:patient_selection' %}" class="btn-action btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Patient Selection
+                </a>
+                <button type="submit" class="btn-action btn-primary">
+                    <i class="fas fa-save"></i>
+                    Create Medical History
+                </button>
+            </div>
+            
+        </form>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('createHistoryForm');
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            submitBtn.disabled = true;
+            
+            // Submit form
+            const formData = new FormData(form);
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showSuccessMessage('Medical history created successfully!');
+                    
+                    // Redirect to medical history page
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 1500);
+                } else {
+                    showErrorMessage(data.message || 'An error occurred while creating medical history.');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('An error occurred while creating medical history.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    });
+    
+    function showSuccessMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #059669;
+            z-index: 9999;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        `;
+        messageDiv.innerHTML = `
+            <div style="display: flex; align-items: center;">
+                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 5000);
+    }
+    
+    function showErrorMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #ef4444;
+            z-index: 9999;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        `;
+        messageDiv.innerHTML = `
+            <div style="display: flex; align-items: center;">
+                <i class="fas fa-exclamation-circle" style="margin-right: 0.5rem;"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 7000);
+    }
+</script>
+{% endblock %}

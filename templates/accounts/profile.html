@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Profile{% endblock %}
+
+{% block page_title %}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white rounded-xl border border-gray-100">
+        <!-- User Name Display -->
+        <div class="px-6 py-8 text-center border-b border-gray-100">
+            <h1 class="text-3xl font-bold text-gray-900">{{ user.get_full_name|default:user.username }}</h1>
+        </div>
+        
+        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-gray-900 opacity-50">Profile</h2>
+            <div class="flex items-center gap-2">
+                <button type="button" id="btnStartEdit" class="px-3 py-2 rounded-md bg-blue-600 text-white text-sm">Edit Profile</button>
+            </div>
+        </div>
+
+        <form id="inlineProfileForm" class="px-4 py-4">
+            {% csrf_token %}
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 opacity-50">First name</label>
+                    <div id="view_first_name" class="mt-1 text-gray-900 font-medium">{{ user.first_name|default:'-' }}</div>
+                    <div class="hidden mt-1" id="wrap_first_name">
+                        <input type="text" name="first_name" id="edit_first_name" value="{{ user.first_name }}" placeholder="Enter first name" class="block w-full border border-gray-300 border-opacity-50 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 placeholder-opacity-50" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 opacity-50">Last name</label>
+                    <div id="view_last_name" class="mt-1 text-gray-900 font-medium">{{ user.last_name|default:'-' }}</div>
+                    <div class="hidden mt-1" id="wrap_last_name">
+                        <input type="text" name="last_name" id="edit_last_name" value="{{ user.last_name }}" placeholder="Enter last name" class="block w-full border border-gray-300 border-opacity-50 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 placeholder-opacity-50" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 opacity-50">Email</label>
+                    <div id="view_email" class="mt-1 text-gray-900 font-medium">{{ user.email }}</div>
+                    <div class="hidden mt-1" id="wrap_email">
+                        <input type="email" name="email" id="edit_email" value="{{ user.email }}" placeholder="you@example.com" class="block w-full border border-gray-300 border-opacity-50 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 placeholder-opacity-50" />
+                    </div>
+                </div>
+
+                <p class="text-sm text-red-600 hidden" id="inline_ep_error"></p>
+                <p class="text-sm text-green-600 hidden" id="inline_ep_success"></p>
+                <div class="flex items-center gap-2 pt-1">
+                    <button type="submit" id="btnSave" class="hidden px-3 py-2 rounded-md bg-green-600 text-white text-sm">Save</button>
+                    <button type="button" id="btnCancel" class="hidden px-3 py-2 rounded-md border border-gray-300 border-opacity-50 text-gray-700 text-sm">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const form = document.getElementById('inlineProfileForm');
+        const btnStart = document.getElementById('btnStartEdit');
+        const btnSave = document.getElementById('btnSave');
+        const btnCancel = document.getElementById('btnCancel');
+        const err = document.getElementById('inline_ep_error');
+        const ok = document.getElementById('inline_ep_success');
+        const vFirst = document.getElementById('view_first_name');
+        const vLast = document.getElementById('view_last_name');
+        const vEmail = document.getElementById('view_email');
+        const eFirst = document.getElementById('edit_first_name');
+        const eLast = document.getElementById('edit_last_name');
+        const eEmail = document.getElementById('edit_email');
+
+        // Helpers: sanitize and format
+        function cleanName(s){
+            if (!s) return '';
+            let t = String(s).trim();
+            t = t.replace(/\s+/g,' ');       // collapse spaces
+            t = t.replace(/^[.\s]+|[.\s]+$/g,''); // strip leading/trailing dots/spaces
+            if (!t) return '';
+            return t.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+        function cleanEmail(s){ return (s || '').trim().toLowerCase(); }
+        function displayOrDash(s){ const v = (s || '').trim(); return !v || v === '.' ? '-' : v; }
+
+        function setEditMode(on){
+            document.getElementById('wrap_first_name').classList.toggle('hidden', !on);
+            document.getElementById('wrap_last_name').classList.toggle('hidden', !on);
+            document.getElementById('wrap_email').classList.toggle('hidden', !on);
+            [eFirst, eLast, eEmail].forEach(i => i.classList.toggle('hidden', !on));
+            [vFirst, vLast, vEmail].forEach(p => p.classList.toggle('hidden', on));
+            btnStart.classList.toggle('hidden', on);
+            btnSave.classList.toggle('hidden', !on);
+            btnCancel.classList.toggle('hidden', !on);
+            if (err){ err.classList.add('hidden'); err.textContent=''; }
+            if (ok){ ok.classList.add('hidden'); ok.textContent=''; }
+        }
+
+        btnStart.addEventListener('click', () => setEditMode(true));
+        btnCancel.addEventListener('click', () => {
+            eFirst.value = vFirst.textContent.trim() === '-' ? '' : vFirst.textContent.trim();
+            eLast.value = vLast.textContent.trim() === '-' ? '' : vLast.textContent.trim();
+            eEmail.value = vEmail.textContent.trim();
+            setEditMode(false);
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (err){ err.classList.add('hidden'); }
+            if (ok){ ok.classList.add('hidden'); }
+            const payload = {
+                first_name: cleanName(eFirst.value || ''),
+                last_name: cleanName(eLast.value || ''),
+                email: cleanEmail(eEmail.value || '')
+            };
+            try {
+                const csrf = form.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+                const resp = await fetch('/accounts/profile/update-basic/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+                    body: JSON.stringify(payload)
+                });
+                const result = await resp.json();
+                if (!result.success){
+                    if (err){ err.textContent = result.error || 'Failed to update profile'; err.classList.remove('hidden'); }
+                    return;
+                }
+                const full = (result.data?.full_name || '').trim();
+                vFirst.textContent = displayOrDash(result.data?.first_name);
+                vLast.textContent = displayOrDash(result.data?.last_name);
+                vEmail.textContent = result.data?.email || '';
+                const top = document.getElementById('topbar-user-fullname');
+                const side = document.getElementById('sidebar-user-fullname');
+                if (full){ if (top) top.textContent = full; if (side) side.textContent = full; }
+                if (ok){ ok.textContent = 'Profile updated successfully'; ok.classList.remove('hidden'); }
+                setTimeout(() => setEditMode(false), 400);
+            } catch (ex){
+                if (err){ err.textContent = 'Error: ' + ex.message; err.classList.remove('hidden'); }
+            }
+        });
+
+        // Normalize initial view, start in view mode
+        vFirst.textContent = displayOrDash(vFirst.textContent);
+        vLast.textContent = displayOrDash(vLast.textContent);
+        setEditMode(false);
+    })();
+</script>
+{% endblock %}

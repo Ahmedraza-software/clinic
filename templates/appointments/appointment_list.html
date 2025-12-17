@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_admin %}All Appointments{% else %}My Appointments{% endif %}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* Appointments List Styles (mirroring patient list) */
+.appt-list-container { max-width: 100%; margin: 0; padding: 1rem; background: #f8fafc; min-height: 100vh; }
+
+/* Header Section */
+.page-header { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 0.5rem 0.75rem; border-radius: 6px; margin-bottom: 0.5rem; box-shadow: 0 2px 6px rgba(59,130,246,0.15); display: inline-block; max-width: 360px; position: relative; overflow: hidden; }
+.page-header::before { content: ''; position: absolute; inset: 0; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>'); opacity: .3; pointer-events: none; }
+.page-title { font-size: .875rem; font-weight: 600; margin: 0; color: #fff; display: flex; align-items: center; gap: .375rem; position: relative; z-index: 1; }
+.page-subtitle { font-size: .6875rem; color: rgba(255,255,255,.85); margin: .125rem 0 0; font-weight: 400; position: relative; z-index: 1; line-height: 1.2; }
+.header-icon { width: 1.5rem; height: 1.5rem; background: rgba(255,255,255,.2); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .75rem; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.3); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+
+/* Search Section */
+.search-section { padding: .5rem; margin-bottom: .5rem; max-width: fit-content; min-width: 400px; margin-left: auto; display: block; }
+.search-form { display: flex; gap: 1rem; align-items: center; }
+.search-input { flex: 1; padding: .875rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; transition: all .2s ease; background: #f9fafb; }
+.search-input:focus { outline: none; border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+.search-input::placeholder { color: #9ca3af; }
+.btn-search { padding: .875rem 1.5rem; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all .2s ease; display: inline-flex; align-items: center; gap: .5rem; }
+.btn-search:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,.3); }
+.search-stats { display: flex; align-items: center; gap: 1rem; margin-top: .5rem; padding-top: .5rem; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: .875rem; }
+.appt-count-badge { background: #eff6ff; color: #2563eb; padding: .25rem .75rem; border-radius: 20px; font-weight: 600; font-size: .75rem; }
+
+/* Table Section */
+.appts-section { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.1); overflow: hidden; }
+.appts-table { width: 100%; border-collapse: collapse; }
+.appts-table thead { background: #f8fafc; border-bottom: 2px solid #e5e7eb; }
+.appts-table th { padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: .875rem; text-transform: uppercase; letter-spacing: .05em; }
+.appts-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: all .2s ease; cursor: pointer; }
+.appts-table tbody tr:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+.appts-table td { padding: 1rem; vertical-align: middle; font-size: .875rem; }
+
+.appt-name { font-weight: 600; color: #1f2937; display: flex; align-items: center; gap: .75rem; }
+.appt-avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #2563eb); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: .875rem; }
+.status-badge { padding: .25rem .5rem; border-radius: 6px; font-size: .75rem; font-weight: 500; }
+.status-completed { background: #dcfce7; color: #166534; }
+.status-confirmed { background: #dbeafe; color: #1e40af; }
+.status-scheduled { background: #fef3c7; color: #92400e; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+
+.text-muted { color: #6b7280; }
+.text-xs { font-size: .75rem; }
+.action-buttons { display: flex; gap: .5rem; align-items: center; }
+.action-link { background: #3b82f6; color: #fff; border-radius: 6px; padding: .4rem .6rem; font-size: .8125rem; text-decoration: none; display: inline-flex; align-items: center; gap: .35rem; transition: transform .2s ease, background .2s ease; }
+.action-link:hover { background: #2563eb; transform: scale(1.05); color: #fff; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .appt-list-container { padding: .5rem; }
+  .search-form { flex-direction: column; gap: .75rem; }
+  .appts-table { font-size: .8125rem; }
+  .appts-table th, .appts-table td { padding: .75rem .5rem; }
+}
+
+@media (max-width: 640px) {
+  .appts-table th:nth-child(5), .appts-table td:nth-child(5),
+  .appts-table th:nth-child(6), .appts-table td:nth-child(6) { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-area flex-1 flex flex-col overflow-hidden">
+  <div class="appt-list-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">
+        <div class="header-icon"><i class="fas fa-calendar-check"></i></div>
+        {% if is_admin %}All Appointments{% elif request.user.is_doctor %}My Appointments{% else %}My Appointments{% endif %}
+      </h1>
+      <p class="page-subtitle">Overview of scheduled and completed appointments</p>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+      <form class="search-form" method="get" id="apptSearchForm">
+        <input type="text" name="search" class="search-input" placeholder="Search by type, patient, doctor, or status..." value="{{ request.GET.search|default:'' }}" id="apptSearchInput">
+        <button type="submit" class="btn-search"><i class="fas fa-search"></i> Search</button>
+        {% if is_patient %}
+        <a href="{% url 'appointments:book' %}" class="btn-search" style="background:#10b981"><i class="fas fa-plus"></i> New</a>
+        {% endif %}
+      </form>
+      <div class="search-stats">
+        <i class="fas fa-calendar"></i>
+        <span>Total Appointments</span>
+        <span class="appt-count-badge">{{ appointments|length }} appointment{{ appointments|length|pluralize }}</span>
+        {% if request.GET.search %}
+        <span>•</span>
+        <span>Filtered by: "{{ request.GET.search }}"</span>
+        <a href="{% url 'appointments:list' %}" class="text-blue-600 hover:text-blue-800 ml-2"><i class="fas fa-times"></i> Clear</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Appointments Table -->
+    <div class="appts-section">
+      {% if appointments %}
+      <table class="appts-table">
+        <thead>
+          <tr>
+            <th>Appointment</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Status</th>
+            <th>When</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appt in appointments %}
+          <tr class="appt-row" data-href="{% url 'appointments:detail' appt.id %}">
+            <td>
+              <div class="appt-name">
+                <div class="appt-avatar"><i class="fas fa-stethoscope"></i></div>
+                <div>
+                  <div>{{ appt.get_appointment_type_display }}</div>
+                  <div class="text-xs text-muted mt-1">ID-{{ appt.id|stringformat:"06d" }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="text-sm text-gray-700">
+                {% if appt.patient and appt.patient.user %}
+                  {{ appt.patient.user.get_full_name|default:appt.patient.user.username }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="text-sm text-gray-700">{{ appt.doctor }}</div>
+            </td>
+            <td>
+              <span class="status-badge {% if appt.status == 'completed' %}status-completed{% elif appt.status == 'confirmed' %}status-confirmed{% elif appt.status == 'scheduled' %}status-scheduled{% elif appt.status == 'cancelled' %}status-cancelled{% else %}status-scheduled{% endif %}">
+                {{ appt.get_status_display|default:appt.status|title }}
+              </span>
+            </td>
+            <td>
+              <div class="text-sm text-gray-700">
+                {{ appt.appointment_date|date:"M j, Y" }}
+                <div class="text-xs text-muted mt-1">{{ appt.appointment_time|time:"g:i A" }}</div>
+              </div>
+            </td>
+            <td onclick="event.stopPropagation()">
+              <div class="action-buttons">
+                <a href="{% url 'appointments:detail' appt.id %}" class="action-link"><i class="fas fa-eye"></i> View Details</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state" style="text-align:center; padding:3rem 1rem; color:#9ca3af;">
+        <i class="fas fa-calendar-times" style="font-size:3rem; margin-bottom:1rem; opacity:.3;"></i>
+        <h3 style="font-size:1.125rem; font-weight:600; margin-bottom:.5rem; color:#6b7280;">No Appointments Found</h3>
+        <p style="font-size:.875rem;">{% if request.GET.search %}No appointments match your search criteria.{% else %}No appointments available.{% endif %}</p>
+        {% if request.GET.search %}
+        <a href="{% url 'appointments:list' %}" class="btn-search"><i class="fas fa-times"></i> Clear Search</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Search debounce and keyboard UX mirroring patient page
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('apptSearchInput');
+    const searchForm = document.getElementById('apptSearchForm');
+    if (searchInput && searchForm) {
+      let t;
+      searchInput.addEventListener('input', function(){
+        clearTimeout(t);
+        t = setTimeout(function(){
+          if (searchInput.value.length >= 2 || searchInput.value.length === 0) {
+            searchForm.submit();
+          }
+        }, 500);
+      });
+      // ESC clears
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape') {
+          searchInput.value = '';
+          if (window.location.search) window.location.href = window.location.pathname;
+        }
+      });
+    }
+
+    // Row hover micro-interactions and fade-in animation
+    const rows = document.querySelectorAll('.appts-table tbody tr');
+    rows.forEach((row, i) => {
+      row.style.opacity = '0';
+      row.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        row.style.transition = 'all 0.3s ease';
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, i * 50);
+    });
+
+    // Row click navigation using data-href
+    document.querySelectorAll('.appts-table tbody tr.appt-row').forEach((r) => {
+      r.addEventListener('click', function(){
+        if (this.dataset.href) window.location.href = this.dataset.href;
+      });
+    });
+  });
+</script>
+{% endblock %}

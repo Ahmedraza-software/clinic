@@ -1,0 +1,1861 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Patient Medical History - Clinic Management System{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* Hide sidebar and header for compact view */
+#sidebar ul.nav.flex-column { display: none !important; }
+#sidebar .position-sticky { padding-top: 0 !important; }
+main.col-md-9.ms-sm-auto.col-lg-10.px-md-4 > .d-flex.border-bottom { display: none !important; }
+
+/* Main Container - Left Aligned */
+.medical-history-container {
+    max-width: 1400px;
+    margin: 0;
+    margin-left: 2rem;
+    padding: 1rem;
+}
+
+/* Page Header */
+.page-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-text {
+    flex: 1;
+}
+
+.page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0.5rem 0 0 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.btn-back {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-back i {
+    font-size: 0.875rem;
+}
+
+/* Patient Info Card */
+.patient-info-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.patient-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.patient-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.patient-id {
+    background: #eff6ff;
+    color: #2563eb;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.patient-info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.info-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.info-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Section Cards */
+.section-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.section-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.section-icon.medical {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #2563eb;
+}
+
+.section-icon.allergy {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #d97706;
+}
+
+.section-icon.medication {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #059669;
+}
+
+/* Action Buttons */
+.btn-action {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #374151;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+/* Medical History Table */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.history-table th {
+    background: #f9fafb;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.history-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 0.875rem;
+    color: #111827;
+}
+
+.history-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.record-type {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.record-type.consultation {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.record-type.lab_test {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.record-type.procedure {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.record-type.surgery {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-badge.completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.scheduled {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge.in_progress {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* Allergy and Medication Items */
+.item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.item-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.item-card:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+}
+
+.item-header {
+    display: flex;
+    justify-content: between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.item-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.severity-badge {
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-left: auto;
+}
+
+.severity-badge.mild {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.severity-badge.moderate {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.severity-badge.severe {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.severity-badge.life_threatening {
+    background: #fecaca;
+    color: #7f1d1d;
+}
+
+.item-details {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+}
+
+.medication-dosage {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #059669;
+    margin: 0.25rem 0;
+}
+
+.medication-indication {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+.empty-state h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #6b7280;
+}
+
+.empty-state p {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .medical-history-container {
+        margin-left: 1rem;
+        max-width: 100%;
+    }
+    
+    .patient-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .medical-history-container {
+        margin-left: 0.5rem;
+        padding: 0.5rem;
+    }
+    
+    .patient-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .history-table {
+        font-size: 0.75rem;
+    }
+    
+    .history-table th,
+    .history-table td {
+        padding: 0.5rem;
+    }
+}
+
+/* Inline Editing Styles */
+.editable-field {
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.editable-field:hover {
+    background-color: #f0f9ff;
+    border: 1px dashed #3b82f6;
+}
+
+.editable-field.editing {
+    background-color: #fff;
+    border: 2px solid #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.editable-field input,
+.editable-field select,
+.editable-field textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    padding: 2px;
+    outline: none;
+    resize: none;
+}
+
+.editable-field textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.edit-controls {
+    position: absolute;
+    top: -30px;
+    right: 0;
+    display: flex;
+    gap: 4px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.edit-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-btn.save {
+    background: #059669;
+    color: white;
+}
+
+.edit-btn.save:hover {
+    background: #047857;
+}
+
+.edit-btn.cancel {
+    background: #6b7280;
+    color: white;
+}
+
+.edit-btn.cancel:hover {
+    background: #4b5563;
+}
+
+.editable-row:hover {
+    background-color: #f8fafc;
+}
+
+.editable-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading state */
+.saving {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Print Styles */
+@media print {
+    .btn-action, .section-actions, .edit-controls {
+        display: none !important;
+    }
+    
+    .medical-history-container {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+    
+    .section-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+    
+    .editable-field:hover {
+        background-color: transparent;
+        border: none;
+    }
+}
+
+/* Popup Styles */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-overlay.active {
+    display: flex;
+}
+
+.popup-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.popup-header h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.popup-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.popup-close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.popup-content form {
+    padding: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.75rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.popup-actions button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.popup-actions button[type="button"] {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.popup-actions button[type="button"]:hover {
+    background: #e5e7eb;
+}
+
+.popup-actions button[type="submit"] {
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+}
+
+.popup-actions button[type="submit"]:hover {
+    background: linear-gradient(135deg, #047857, #065f46);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+}
+
+@media (max-width: 640px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .popup-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .btn-back {
+        font-size: 0.8rem;
+        padding: 0.625rem 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-area flex-1 flex flex-col overflow-hidden" data-user-can-edit="{{ user_can_edit|yesno:'true,false' }}">
+    <div class="medical-history-container">
+        
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-file-medical"></i>
+                        Patient Medical History
+                    </h1>
+                    <p class="page-subtitle">Comprehensive medical records and patient information</p>
+                </div>
+                {% if user.is_staff or user.is_superuser %}
+                <div class="header-actions">
+                    <a href="{% url 'emr:patient_selection' %}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to All Patients
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Patient Information Card -->
+        <div class="patient-info-card">
+            <div class="patient-info-header">
+                <h2 class="patient-name">{{ patient.full_name|default:"John Doe" }}</h2>
+                <span class="patient-id">ID: P-{{ patient.id|default:"001" }}</span>
+            </div>
+            
+            <div class="patient-info-grid">
+                <div class="info-item">
+                    <span class="info-label">Date of Birth</span>
+                    <span class="info-value">{{ patient.date_of_birth|date:"F j, Y"|default:"January 1, 1980" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Blood Type</span>
+                    <span class="info-value">{{ patient.blood_group|default:"O+" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Age</span>
+                    <span class="info-value">{{ patient.age|default:"44" }} years</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Last Visit</span>
+                    <span class="info-value">{{ last_visit|date:"F j, Y"|default:"November 5, 2025" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Medical History Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <div class="section-icon medical">
+                        <i class="fas fa-notes-medical"></i>
+                    </div>
+                    Medical History
+                </h3>
+                <button class="btn-action btn-primary" onclick="addMedicalRecord()">
+                    <i class="fas fa-plus"></i>
+                    Add New Record
+                </button>
+            </div>
+            
+            {% if medical_records %}
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Doctor</th>
+                        <th>Diagnosis</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in medical_records %}
+                    <tr class="editable-row" data-record-id="{{ record.id }}" data-record-type="medical_record">
+                        <td class="editable-field" data-field="date" data-type="date">{{ record.date|date:"M j, Y" }}</td>
+                        <td class="editable-field" data-field="record_type" data-type="select">
+                            <span class="record-type {{ record.record_type }}">
+                                {{ record.get_record_type_display }}
+                            </span>
+                        </td>
+                        <td class="editable-field" data-field="doctor_name" data-type="text">{{ record.doctor_name }}</td>
+                        <td class="editable-field" data-field="diagnosis" data-type="textarea">{{ record.diagnosis|truncatechars:50 }}</td>
+                        <td class="editable-field" data-field="status" data-type="select">
+                            <span class="status-badge {{ record.status }}">
+                                {{ record.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 0.25rem;">
+                                <button class="btn-action btn-secondary" onclick="viewRecord('{{ record.id }}')">
+                                    <i class="fas fa-eye"></i>
+                                    View
+                                </button>
+                                {% if user.is_staff or user.is_superuser %}
+                                <button class="btn-action btn-danger" onclick="deleteRecord('medical_record', '{{ record.id }}')">
+                                    <i class="fas fa-trash"></i>
+                                    Delete
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <!-- Sample Data for Demo -->
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Doctor</th>
+                        <th>Diagnosis</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2025-11-05</td>
+                        <td><span class="record-type consultation">Consultation</span></td>
+                        <td>Dr. Smith</td>
+                        <td>Annual Checkup</td>
+                        <td><span class="status-badge completed">Completed</span></td>
+                        <td>
+                            <button class="btn-action btn-secondary" onclick="viewRecord(1)">
+                                <i class="fas fa-eye"></i>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2025-10-15</td>
+                        <td><span class="record-type lab_test">Lab Test</span></td>
+                        <td>Dr. Johnson</td>
+                        <td>Blood Work</td>
+                        <td><span class="status-badge completed">Completed</span></td>
+                        <td>
+                            <button class="btn-action btn-secondary" onclick="viewRecord(2)">
+                                <i class="fas fa-eye"></i>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2025-09-20</td>
+                        <td><span class="record-type procedure">Procedure</span></td>
+                        <td>Dr. Williams</td>
+                        <td>Minor Surgery</td>
+                        <td><span class="status-badge completed">Completed</span></td>
+                        <td>
+                            <button class="btn-action btn-secondary" onclick="viewRecord(3)">
+                                <i class="fas fa-eye"></i>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        
+        <!-- Allergies Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <div class="section-icon allergy">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    Allergies
+                </h3>
+                <button class="btn-action btn-primary" onclick="addAllergy()">
+                    <i class="fas fa-plus"></i>
+                    Add Allergy
+                </button>
+            </div>
+            
+            {% if allergies %}
+            <div class="item-grid">
+                {% for allergy in allergies %}
+                <div class="item-card editable-card" data-record-id="{{ allergy.id }}" data-record-type="allergy">
+                    <div class="item-header">
+                        <h4 class="item-name editable-field" data-field="allergen" data-type="text">{{ allergy.allergen }}</h4>
+                        <span class="severity-badge {{ allergy.severity }} editable-field" data-field="severity" data-type="select">{{ allergy.get_severity_display }}</span>
+                    </div>
+                    <div class="item-details">
+                        <strong>Type:</strong> <span class="editable-field" data-field="allergy_type" data-type="select">{{ allergy.get_allergy_type_display }}</span><br>
+                        <strong>Reaction:</strong> <span class="editable-field" data-field="reaction" data-type="textarea">{{ allergy.reaction|truncatechars:100 }}</span>
+                        {% if allergy.date_identified %}
+                        <br><strong>Identified:</strong> <span class="editable-field" data-field="date_identified" data-type="date">{{ allergy.date_identified|date:"M Y" }}</span>
+                        {% endif %}
+                    </div>
+                    {% if user.is_staff or user.is_superuser %}
+                    <div class="item-actions" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb; display: flex; gap: 0.5rem;">
+                        <button class="btn-action btn-danger" onclick="deleteRecord('allergy', '{{ allergy.id }}')">
+                            <i class="fas fa-trash"></i>
+                            Delete
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Sample Data for Demo -->
+            <div class="item-grid">
+                <div class="item-card">
+                    <div class="item-header">
+                        <h4 class="item-name">Penicillin</h4>
+                        <span class="severity-badge severe">Severe</span>
+                    </div>
+                    <div class="item-details">
+                        <strong>Type:</strong> Drug/Medication<br>
+                        <strong>Reaction:</strong> Severe skin rash, difficulty breathing
+                    </div>
+                </div>
+                <div class="item-card">
+                    <div class="item-header">
+                        <h4 class="item-name">Peanuts</h4>
+                        <span class="severity-badge moderate">Moderate</span>
+                    </div>
+                    <div class="item-details">
+                        <strong>Type:</strong> Food<br>
+                        <strong>Reaction:</strong> Swelling, hives, stomach upset
+                    </div>
+                </div>
+                <div class="item-card">
+                    <div class="item-header">
+                        <h4 class="item-name">Dust Mites</h4>
+                        <span class="severity-badge mild">Mild</span>
+                    </div>
+                    <div class="item-details">
+                        <strong>Type:</strong> Environmental<br>
+                        <strong>Reaction:</strong> Sneezing, runny nose, watery eyes
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Current Medications Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <div class="section-icon medication">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    Current Medications
+                </h3>
+                <button class="btn-action btn-primary" onclick="addMedication()">
+                    <i class="fas fa-plus"></i>
+                    Add Medication
+                </button>
+            </div>
+            
+            {% if medications %}
+            <div class="item-grid">
+                {% for medication in medications %}
+                <div class="item-card editable-card" data-record-id="{{ medication.id }}" data-record-type="medication">
+                    <div class="item-header">
+                        <h4 class="item-name editable-field" data-field="medication_name" data-type="text">{{ medication.medication_name }}</h4>
+                    </div>
+                    <div class="medication-dosage">
+                        <span class="editable-field" data-field="dosage" data-type="text">{{ medication.dosage }}</span> - 
+                        <span class="editable-field" data-field="frequency" data-type="select">{{ medication.get_frequency_display }}</span>
+                    </div>
+                    <div class="medication-indication editable-field" data-field="indication" data-type="textarea">{{ medication.indication }}</div>
+                    <div class="item-details">
+                        <strong>Prescribed by:</strong> 
+                        <span class="editable-field" data-field="prescribed_by_name" data-type="text">{{ medication.prescribed_by_name }}</span> on 
+                        <span class="editable-field" data-field="start_date" data-type="date">{{ medication.start_date|date:"M j, Y" }}</span>
+                    </div>
+                    {% if user.is_staff or user.is_superuser %}
+                    <div class="item-actions" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb; display: flex; gap: 0.5rem;">
+                        <button class="btn-action btn-danger" onclick="deleteRecord('medication', '{{ medication.id }}')">
+                            <i class="fas fa-trash"></i>
+                            Delete
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Sample Data for Demo -->
+            <div class="item-grid">
+                <div class="item-card">
+                    <div class="item-header">
+                        <h4 class="item-name">Lisinopril</h4>
+                    </div>
+                    <div class="medication-dosage">10mg daily</div>
+                    <div class="medication-indication">For high blood pressure</div>
+                    <div class="item-details">
+                        <strong>Prescribed by:</strong> Dr. Smith on Oct 15, 2025
+                    </div>
+                </div>
+                <div class="item-card">
+                    <div class="item-header">
+                        <h4 class="item-name">Atorvastatin</h4>
+                    </div>
+                    <div class="medication-dosage">20mg at bedtime</div>
+                    <div class="medication-indication">For high cholesterol</div>
+                    <div class="item-details">
+                        <strong>Prescribed by:</strong> Dr. Johnson on Sep 20, 2025
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+    </div>
+    
+    
+    <!-- Simple Add Forms Popups -->
+    {% if user.is_staff or user.is_superuser %}
+    
+    <!-- Add Medical Record Popup -->
+    <div id="addRecordPopup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3><i class="fas fa-plus-circle"></i> Add Medical Record</h3>
+                <button class="popup-close" onclick="closePopup('addRecordPopup')">&times;</button>
+            </div>
+            <form id="addRecordForm" onsubmit="addNewRecord(event)">
+                {% csrf_token %}
+                <input type="hidden" name="patient_id" value="{{ patient.id }}">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Type *</label>
+                        <select name="record_type" required>
+                            <option value="consultation">Consultation</option>
+                            <option value="lab_test">Lab Test</option>
+                            <option value="procedure">Procedure</option>
+                            <option value="surgery">Surgery</option>
+                            <option value="emergency">Emergency Visit</option>
+                            <option value="follow_up">Follow-up</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" name="date" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Doctor *</label>
+                        <select name="doctor_id" required>
+                            <option value="">Select Doctor</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">{{ doctor.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select name="status">
+                            <option value="completed">Completed</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="in_progress">In Progress</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Diagnosis *</label>
+                    <textarea name="diagnosis" rows="2" placeholder="Enter diagnosis..." required></textarea>
+                </div>
+                
+                <div class="popup-actions">
+                    <button type="button" onclick="closePopup('addRecordPopup')">Cancel</button>
+                    <button type="submit">Add Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Add Allergy Popup -->
+    <div id="addAllergyPopup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Add Allergy</h3>
+                <button class="popup-close" onclick="closePopup('addAllergyPopup')">&times;</button>
+            </div>
+            <form id="addAllergyForm" onsubmit="addNewAllergy(event)">
+                {% csrf_token %}
+                <input type="hidden" name="patient_id" value="{{ patient.id }}">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Allergen *</label>
+                        <input type="text" name="allergen" placeholder="e.g., Penicillin" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Type *</label>
+                        <select name="allergy_type" required>
+                            <option value="drug">Drug/Medication</option>
+                            <option value="food">Food</option>
+                            <option value="environmental">Environmental</option>
+                            <option value="contact">Contact</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Severity *</label>
+                        <select name="severity" required>
+                            <option value="mild">Mild</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="severe">Severe</option>
+                            <option value="life_threatening">Life Threatening</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date Identified</label>
+                        <input type="date" name="date_identified">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Reaction *</label>
+                    <textarea name="reaction" rows="2" placeholder="Describe the reaction..." required></textarea>
+                </div>
+                
+                <div class="popup-actions">
+                    <button type="button" onclick="closePopup('addAllergyPopup')">Cancel</button>
+                    <button type="submit">Add Allergy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Add Medication Popup -->
+    <div id="addMedicationPopup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3><i class="fas fa-pills"></i> Add Medication</h3>
+                <button class="popup-close" onclick="closePopup('addMedicationPopup')">&times;</button>
+            </div>
+            <form id="addMedicationForm" onsubmit="addNewMedication(event)">
+                {% csrf_token %}
+                <input type="hidden" name="patient_id" value="{{ patient.id }}">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Medication *</label>
+                        <input type="text" name="medication_name" placeholder="e.g., Lisinopril" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Dosage *</label>
+                        <input type="text" name="dosage" placeholder="e.g., 10mg" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Frequency *</label>
+                        <select name="frequency" required>
+                            <option value="once_daily">Once daily</option>
+                            <option value="twice_daily">Twice daily</option>
+                            <option value="three_times_daily">Three times daily</option>
+                            <option value="as_needed">As needed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Prescribed By *</label>
+                        <select name="prescribed_by_id" required>
+                            <option value="">Select Doctor</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">{{ doctor.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Indication *</label>
+                    <textarea name="indication" rows="2" placeholder="What condition this treats..." required></textarea>
+                </div>
+                
+                <div class="popup-actions">
+                    <button type="button" onclick="closePopup('addMedicationPopup')">Cancel</button>
+                    <button type="submit">Add Medication</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% endif %}
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global variables
+    let currentEditingField = null;
+    let originalValue = '';
+    
+    // Inline Editing Functions
+    function makeFieldEditable(field) {
+        if (currentEditingField && currentEditingField !== field) {
+            cancelEdit();
+        }
+        
+        currentEditingField = field;
+        originalValue = field.textContent.trim();
+        
+        const fieldType = field.dataset.type;
+        const fieldName = field.dataset.field;
+        
+        field.classList.add('editing');
+        
+        let input;
+        
+        if (fieldType === 'textarea') {
+            input = document.createElement('textarea');
+            input.value = originalValue;
+        } else if (fieldType === 'select') {
+            input = document.createElement('select');
+            populateSelect(input, fieldName);
+        } else if (fieldType === 'date') {
+            input = document.createElement('input');
+            input.type = 'date';
+            input.value = formatDateForInput(originalValue);
+        } else {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.value = originalValue;
+        }
+        
+        field.innerHTML = '';
+        field.appendChild(input);
+        
+        // Create save/cancel controls
+        const controls = document.createElement('div');
+        controls.className = 'edit-controls';
+        controls.innerHTML = `
+            <button class="edit-btn save" onclick="saveEdit()">
+                <i class="fas fa-check"></i>
+            </button>
+            <button class="edit-btn cancel" onclick="cancelEdit()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        field.appendChild(controls);
+        input.focus();
+        
+        // Handle Enter and Escape keys
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && fieldType !== 'textarea') {
+                e.preventDefault();
+                saveEdit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEdit();
+            }
+        });
+    }
+    
+    function populateSelect(select, fieldName) {
+        const options = getSelectOptions(fieldName);
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.value;
+            optionElement.textContent = option.text;
+            if (option.text === originalValue) {
+                optionElement.selected = true;
+            }
+            select.appendChild(optionElement);
+        });
+    }
+    
+    function getSelectOptions(fieldName) {
+        const optionSets = {
+            'record_type': [
+                {value: 'consultation', text: 'Consultation'},
+                {value: 'lab_test', text: 'Lab Test'},
+                {value: 'procedure', text: 'Procedure'},
+                {value: 'surgery', text: 'Surgery'},
+                {value: 'emergency', text: 'Emergency Visit'},
+                {value: 'follow_up', text: 'Follow-up'},
+                {value: 'vaccination', text: 'Vaccination'},
+                {value: 'other', text: 'Other'}
+            ],
+            'status': [
+                {value: 'completed', text: 'Completed'},
+                {value: 'scheduled', text: 'Scheduled'},
+                {value: 'in_progress', text: 'In Progress'},
+                {value: 'cancelled', text: 'Cancelled'}
+            ],
+            'severity': [
+                {value: 'mild', text: 'Mild'},
+                {value: 'moderate', text: 'Moderate'},
+                {value: 'severe', text: 'Severe'},
+                {value: 'life_threatening', text: 'Life Threatening'}
+            ],
+            'allergy_type': [
+                {value: 'drug', text: 'Drug/Medication'},
+                {value: 'food', text: 'Food'},
+                {value: 'environmental', text: 'Environmental'},
+                {value: 'contact', text: 'Contact'},
+                {value: 'other', text: 'Other'}
+            ],
+            'frequency': [
+                {value: 'once_daily', text: 'Once daily'},
+                {value: 'twice_daily', text: 'Twice daily'},
+                {value: 'three_times_daily', text: 'Three times daily'},
+                {value: 'four_times_daily', text: 'Four times daily'},
+                {value: 'as_needed', text: 'As needed'},
+                {value: 'weekly', text: 'Weekly'},
+                {value: 'monthly', text: 'Monthly'},
+                {value: 'other', text: 'Other'}
+            ]
+        };
+        
+        return optionSets[fieldName] || [];
+    }
+    
+    function formatDateForInput(dateString) {
+        // Convert display date to YYYY-MM-DD format
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            return new Date().toISOString().split('T')[0];
+        }
+        return date.toISOString().split('T')[0];
+    }
+    
+    async function saveEdit() {
+        if (!currentEditingField) return;
+        
+        const input = currentEditingField.querySelector('input, select, textarea');
+        const newValue = input.value.trim();
+        
+        if (newValue === originalValue) {
+            cancelEdit();
+            return;
+        }
+        
+        const recordId = currentEditingField.closest('[data-record-id]').dataset.recordId;
+        const recordType = currentEditingField.closest('[data-record-id]').dataset.recordType;
+        const fieldName = currentEditingField.dataset.field;
+        
+        // Show saving state
+        currentEditingField.classList.add('saving');
+        
+        try {
+            const formData = new FormData();
+            formData.append('record_id', recordId);
+            formData.append('record_type', recordType);
+            formData.append('field_name', fieldName);
+            formData.append('field_value', newValue);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            
+            const response = await fetch('/emr/api/field/update/', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update the display value
+                currentEditingField.textContent = result.display_value || newValue;
+                currentEditingField.classList.remove('editing', 'saving');
+                
+                // Update any related elements (like badges)
+                updateRelatedElements(currentEditingField, result);
+                
+                showSuccessMessage('Field updated successfully');
+                currentEditingField = null;
+            } else {
+                throw new Error(result.message || 'Failed to update field');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('Failed to update field: ' + error.message);
+            cancelEdit();
+        }
+    }
+    
+    function cancelEdit() {
+        if (!currentEditingField) return;
+        
+        currentEditingField.textContent = originalValue;
+        currentEditingField.classList.remove('editing', 'saving');
+        currentEditingField = null;
+        originalValue = '';
+    }
+    
+    function updateRelatedElements(field, result) {
+        // Update CSS classes for status badges, severity badges, etc.
+        if (field.classList.contains('status-badge') || field.classList.contains('severity-badge')) {
+            field.className = field.className.replace(/\b(completed|scheduled|in_progress|cancelled|mild|moderate|severe|life_threatening)\b/g, '');
+            if (result.css_class) {
+                field.classList.add(result.css_class);
+            }
+        }
+    }
+    
+    // Popup Functions
+    function addMedicalRecord() {
+        document.getElementById('addRecordPopup').classList.add('active');
+        // Set default date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.querySelector('#addRecordForm input[name="date"]').value = today;
+    }
+    
+    function addAllergy() {
+        document.getElementById('addAllergyPopup').classList.add('active');
+    }
+    
+    function addMedication() {
+        document.getElementById('addMedicationPopup').classList.add('active');
+    }
+    
+    function closePopup(popupId) {
+        document.getElementById(popupId).classList.remove('active');
+        // Reset form
+        const form = document.querySelector(`#${popupId} form`);
+        if (form) form.reset();
+    }
+    
+    // Add New Record Functions
+    async function addNewRecord(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch('/emr/api/medical-record/add/', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                closePopup('addRecordPopup');
+                showSuccessMessage('Medical record added successfully!');
+                // Add new row to table
+                addRecordToTable(result.record);
+            } else {
+                showErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('Failed to add medical record');
+        }
+    }
+    
+    async function addNewAllergy(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch('/emr/api/allergy/add/', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                closePopup('addAllergyPopup');
+                showSuccessMessage('Allergy added successfully!');
+                // Add new card to allergies section
+                addAllergyToGrid(result.allergy);
+            } else {
+                showErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('Failed to add allergy');
+        }
+    }
+    
+    async function addNewMedication(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch('/emr/api/medication/add/', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                closePopup('addMedicationPopup');
+                showSuccessMessage('Medication added successfully!');
+                // Add new card to medications section
+                addMedicationToGrid(result.medication);
+            } else {
+                showErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('Failed to add medication');
+        }
+    }
+    
+    // Helper functions to add new items to DOM
+    function addRecordToTable(record) {
+        const tbody = document.querySelector('.history-table tbody');
+        if (tbody) {
+            const newRow = document.createElement('tr');
+            newRow.className = 'editable-row';
+            newRow.dataset.recordId = record.id;
+            newRow.dataset.recordType = 'medical_record';
+            
+            newRow.innerHTML = `
+                <td class="editable-field" data-field="date" data-type="date">${record.date}</td>
+                <td class="editable-field" data-field="record_type" data-type="select">
+                    <span class="record-type ${record.record_type}">${record.record_type}</span>
+                </td>
+                <td class="editable-field" data-field="doctor_name" data-type="text">${record.doctor_name}</td>
+                <td class="editable-field" data-field="diagnosis" data-type="textarea">${record.diagnosis}</td>
+                <td class="editable-field" data-field="status" data-type="select">
+                    <span class="status-badge ${record.status}">${record.status}</span>
+                </td>
+                <td>
+                    <div style="display: flex; gap: 0.25rem;">
+                        <button class="btn-action btn-secondary" onclick="viewRecord('${record.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="btn-action btn-danger" onclick="deleteRecord('medical_record', '${record.id}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </td>
+            `;
+            
+            tbody.appendChild(newRow);
+        }
+    }
+    
+    function addAllergyToGrid(allergy) {
+        const grid = document.querySelector('.item-grid');
+        if (grid && grid.closest('.section-card').querySelector('h3').textContent.includes('Allergies')) {
+            const newCard = document.createElement('div');
+            newCard.className = 'item-card editable-card';
+            newCard.dataset.recordId = allergy.id;
+            newCard.dataset.recordType = 'allergy';
+            
+            newCard.innerHTML = `
+                <div class="item-header">
+                    <h4 class="item-name editable-field" data-field="allergen" data-type="text">${allergy.allergen}</h4>
+                    <span class="severity-badge ${allergy.severity} editable-field" data-field="severity" data-type="select">${allergy.severity}</span>
+                </div>
+                <div class="item-details">
+                    <strong>Type:</strong> <span class="editable-field" data-field="allergy_type" data-type="select">${allergy.allergy_type}</span><br>
+                    <strong>Reaction:</strong> <span class="editable-field" data-field="reaction" data-type="textarea">${allergy.reaction}</span>
+                </div>
+                <div class="item-actions" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb; display: flex; gap: 0.5rem;">
+                    <button class="btn-action btn-danger" onclick="deleteRecord('allergy', '${allergy.id}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            `;
+            
+            grid.appendChild(newCard);
+        }
+    }
+    
+    function addMedicationToGrid(medication) {
+        const grids = document.querySelectorAll('.item-grid');
+        let medicationGrid = null;
+        
+        grids.forEach(grid => {
+            if (grid.closest('.section-card').querySelector('h3').textContent.includes('Medications')) {
+                medicationGrid = grid;
+            }
+        });
+        
+        if (medicationGrid) {
+            const newCard = document.createElement('div');
+            newCard.className = 'item-card editable-card';
+            newCard.dataset.recordId = medication.id;
+            newCard.dataset.recordType = 'medication';
+            
+            newCard.innerHTML = `
+                <div class="item-header">
+                    <h4 class="item-name editable-field" data-field="medication_name" data-type="text">${medication.medication_name}</h4>
+                </div>
+                <div class="medication-dosage">
+                    <span class="editable-field" data-field="dosage" data-type="text">${medication.dosage}</span> - 
+                    <span class="editable-field" data-field="frequency" data-type="select">${medication.frequency}</span>
+                </div>
+                <div class="medication-indication editable-field" data-field="indication" data-type="textarea">${medication.indication}</div>
+                <div class="item-details">
+                    <strong>Prescribed by:</strong> 
+                    <span class="editable-field" data-field="prescribed_by_name" data-type="text">${medication.prescribed_by_name}</span>
+                </div>
+                <div class="item-actions" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb; display: flex; gap: 0.5rem;">
+                    <button class="btn-action btn-danger" onclick="deleteRecord('medication', '${medication.id}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            `;
+            
+            medicationGrid.appendChild(newCard);
+        }
+    }
+    
+    function viewRecord(recordId) {
+        alert('View Medical Record ' + recordId + ' - detailed view would open here');
+    }
+    
+    // Delete Functions
+    async function deleteRecord(recordType, recordId) {
+        const recordTypeNames = {
+            'medical_record': 'medical record',
+            'allergy': 'allergy',
+            'medication': 'medication'
+        };
+        
+        const recordName = recordTypeNames[recordType] || 'record';
+        
+        if (!confirm(`Are you sure you want to delete this ${recordName}? This action cannot be undone.`)) {
+            return;
+        }
+        
+        try {
+            const formData = new FormData();
+            formData.append('record_type', recordType);
+            formData.append('record_id', recordId);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            
+            const response = await fetch('/emr/api/record/delete/', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showSuccessMessage(result.message);
+                // Remove the element from DOM
+                const element = document.querySelector(`[data-record-id="${recordId}"]`);
+                if (element) {
+                    element.remove();
+                }
+            } else {
+                showErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('An error occurred while deleting the ' + recordName + '.');
+        }
+    }
+    
+    // Utility Functions
+    function showSuccessMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #059669;
+            z-index: 9999;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        `;
+        messageDiv.innerHTML = `
+            <div style="display: flex; align-items: center;">
+                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 3000);
+    }
+    
+    function showErrorMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #ef4444;
+            z-index: 9999;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        `;
+        messageDiv.innerHTML = `
+            <div style="display: flex; align-items: center;">
+                <i class="fas fa-exclamation-circle" style="margin-right: 0.5rem;"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 5000);
+    }
+    
+    function printHistory() {
+        window.print();
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Medical History page loaded with inline editing');
+        
+        // Add click handlers for editable fields
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('editable-field') && !event.target.classList.contains('editing')) {
+                // Check if user has permission to edit
+                const contentArea = document.querySelector('.content-area');
+                const userCanEdit = contentArea && contentArea.getAttribute('data-user-can-edit') === 'true';
+                if (userCanEdit) {
+                    makeFieldEditable(event.target);
+                }
+            }
+        });
+        
+        // Cancel edit when clicking outside
+        document.addEventListener('click', function(event) {
+            if (currentEditingField && 
+                !currentEditingField.contains(event.target) && 
+                !event.target.classList.contains('edit-btn')) {
+                cancelEdit();
+            }
+        });
+        
+        // Close popups when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('popup-overlay')) {
+                event.target.classList.remove('active');
+            }
+        });
+        
+        // Close popups with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.popup-overlay.active').forEach(popup => {
+                    popup.classList.remove('active');
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

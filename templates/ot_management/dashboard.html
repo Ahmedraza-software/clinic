@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Operation Theater Management - Clinic Management System{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Custom styles for dashboard */
+    .dashboard-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .stat-card {
+        border-left: 4px solid #4299e1;
+    }
+    .stat-card.primary {
+        border-left-color: #4299e1;
+    }
+    .stat-card.success {
+        border-left-color: #48bb78;
+    }
+    .stat-card.warning {
+        border-left-color: #ed8936;
+    }
+    .stat-card.danger {
+        border-left-color: #f56565;
+    }
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        outline: none;
+        transition: all 0.2s;
+    }
+    .btn:focus {
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+    .btn-primary {
+        background-color: #2563eb;
+        color: white;
+    }
+    .btn-primary:hover {
+        background-color: #1d4ed8;
+    }
+    .btn-outline {
+        border: 1px solid #d1d5db;
+        color: #374151;
+        background-color: white;
+    }
+    .btn-outline:hover {
+        background-color: #f9fafb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-area flex-1 flex flex-col overflow-hidden">
+    <!-- Page Content -->
+    <main class="flex-1 overflow-y-auto bg-gray-50">
+        <div class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="text-2xl font-semibold text-gray-900 mb-6">Operation Theater Management</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <!-- Stats Cards -->
+    <div class="bg-white rounded-lg shadow p-6 stat-card primary">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                <i class="fas fa-procedures text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Scheduled Today</p>
+                <p class="text-2xl font-semibold text-gray-800">{{ stats.scheduled_today|intcomma }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 stat-card success">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                <i class="fas fa-check-circle text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Completed Today</p>
+                <p class="text-2xl font-semibold text-gray-800">{{ stats.completed_today|intcomma }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 stat-card warning">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                <i class="fas fa-calendar-week text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Scheduled This Week</p>
+                <p class="text-2xl font-semibold text-gray-800">{{ stats.scheduled_week|intcomma }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 stat-card danger">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                <i class="fas fa-exclamation-triangle text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Postponed</p>
+                <p class="text-2xl font-semibold text-gray-800">{{ stats.postponed|intcomma }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Today's Schedule -->
+    <div class="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-900">Today's OT Schedule</h3>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-md hover:bg-blue-200">
+                    <i class="fas fa-plus mr-1"></i> New Surgery
+                </button>
+                <button class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200">
+                    <i class="fas fa-print mr-1"></i> Print
+                </button>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Procedure</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Surgeon</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="relative px-6 py-3">
+                            <span class="sr-only">Actions</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for surgery in todays_surgeries %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ surgery.scheduled_time|time:"g:i A" }}</div>
+                            <div class="text-xs text-gray-500">OT {{ surgery.theater_number }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <i class="fas fa-user-circle text-2xl text-gray-400"></i>
+                                </div>
+                                <div class="ml-2">
+                                    <div class="text-sm font-medium text-gray-900">{{ surgery.patient.user.get_full_name }}</div>
+                                    <div class="text-xs text-gray-500">ID: {{ surgery.patient.id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ surgery.procedure_name }}</div>
+                            <div class="text-xs text-gray-500">{{ surgery.procedure_type }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">Dr. {{ surgery.surgeon.user.get_short_name }}</div>
+                            <div class="text-xs text-gray-500">{{ surgery.surgeon.specialization|default:"General Surgeon" }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if surgery.status == 'scheduled' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Scheduled
+                                </span>
+                            {% elif surgery.status == 'in_progress' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    In Progress
+                                </span>
+                            {% elif surgery.status == 'completed' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Completed
+                                </span>
+                            {% elif surgery.status == 'cancelled' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Cancelled
+                                </span>
+                            {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    {{ surgery.get_status_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex justify-end space-x-2">
+                                <button class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="text-yellow-600 hover:text-yellow-900">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% if surgery.status == 'scheduled' %}
+                                <button class="text-green-600 hover:text-green-900">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                {% elif surgery.status == 'in_progress' %}
+                                <button class="text-green-600 hover:text-green-900">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                            No surgeries scheduled for today.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Upcoming Surgeries -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="p-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Upcoming Surgeries</h3>
+        </div>
+        <div class="flow-root">
+            <ul class="divide-y divide-gray-200">
+                {% for surgery in upcoming_surgeries %}
+                <li class="p-4 hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
+                            <i class="fas fa-calendar-day text-blue-600"></i>
+                        </div>
+                        <div class="ml-4 flex-1 min-w-0">
+                            <div class="flex justify-between">
+                                <p class="text-sm font-medium text-gray-900 truncate">
+                                    {{ surgery.patient.user.get_full_name }}
+                                </p>
+                                <span class="text-xs text-gray-500">
+                                    {{ surgery.scheduled_date|date:"M d" }}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-500 truncate">
+                                {{ surgery.procedure_name }}
+                            </p>
+                            <div class="mt-1 flex justify-between items-center">
+                                <p class="text-xs text-gray-500">
+                                    <i class="fas fa-user-md text-gray-400"></i>
+                                    Dr. {{ surgery.surgeon.user.get_short_name }}
+                                </p>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if surgery.status == 'scheduled' %}bg-blue-100 text-blue-800
+                                    {% elif surgery.status == 'in_progress' %}bg-yellow-100 text-yellow-800
+                                    {% elif surgery.status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif surgery.status == 'cancelled' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ surgery.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="p-4 text-center text-sm text-gray-500">
+                    No upcoming surgeries scheduled.
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200">
+            <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                View all surgeries
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- OT Utilization -->
+<div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+    <div class="p-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">OT Utilization - This Week</h3>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {% for day in ot_utilization %}
+            <div>
+                <h4 class="text-sm font-medium text-gray-700 mb-2">{{ day.day|date:"D, M j" }}</h4>
+                <div class="bg-gray-200 rounded-full h-4 mb-1">
+                    <div class="bg-blue-600 rounded-full h-4" style="width: {{ day.utilization_percentage }}%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500">
+                    <span>{{ day.scheduled_surgeries }} surgeries</span>
+                    <span>{{ day.utilization_percentage|floatformat:0 }}%</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-5 text-center py-4 text-gray-500">
+                No OT utilization data available for this week.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Consumables Usage -->
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="p-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">Recent Consumables Usage</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Used In</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Used</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for usage in recent_consumables %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ usage.item.name }}</div>
+                        <div class="text-xs text-gray-500">SKU: {{ usage.item.sku|default:"N/A" }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {{ usage.item.category|default:"General" }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ usage.surgery.procedure_name|default:"N/A" }}</div>
+                        <div class="text-xs text-gray-500">{{ usage.surgery.patient.user.get_full_name|default:"N/A" }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ usage.quantity_used }} {{ usage.item.unit|default:"units" }}</div>
+                        <div class="text-xs text-gray-500">Stock: {{ usage.item.stock_quantity|default:0 }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ usage.usage_date|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if usage.item.stock_quantity <= usage.item.minimum_stock %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Low Stock
+                            </span>
+                        {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                In Stock
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                        No recent consumables usage recorded.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

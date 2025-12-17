@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Healis Clinic{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+    <div class="absolute inset-0 bg-black opacity-10"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <!-- Left Content -->
+            <div class="space-y-8">
+                <div class="space-y-4">
+                    <h1 class="text-4xl lg:text-6xl font-bold leading-tight">
+                        Premium Medical
+                        <span class="text-blue-200">Excellence</span>
+                    </h1>
+                    <p class="text-xl lg:text-2xl text-blue-100 leading-relaxed">
+                        Comprehensive healthcare services with compassionate care and cutting-edge medical technology
+                    </p>
+                </div>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#" class="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                        <i class="fas fa-calendar-check mr-2"></i>
+                        Book Appointment
+                    </a>
+                    <a href="#" class="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors duration-200">
+                        <i class="fas fa-phone mr-2"></i>
+                        Emergency: (555) 123-4567
+                    </a>
+                </div>
+                
+                <!-- Trust Indicators -->
+                <div class="flex items-center space-x-8 pt-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="flex text-yellow-400">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="text-blue-100">4.9/5 Rating</span>
+                    </div>
+                    <div class="text-blue-100">
+                        <span class="font-semibold">25,000+</span> Happy Patients
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Content - Image/Stats -->
+            <div class="relative">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-white mb-2">24/7</div>
+                            <div class="text-blue-200">Emergency Care</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-white mb-2">50+</div>
+                            <div class="text-blue-200">Expert Doctors</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-white mb-2">15+</div>
+                            <div class="text-blue-200">Years Experience</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-white mb-2">99%</div>
+                            <div class="text-blue-200">Success Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Specialties Section -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mb-4">
+                <i class="fas fa-star mr-2"></i>
+                Premium Medical Excellence
+            </div>
+            <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+                Our Specialties
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Comprehensive care across all medical disciplines with world-class expertise
+            </p>
+        </div>
+        
+        <!-- Specialty Cards -->
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Cardiology -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+                <div class="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-heart text-2xl text-red-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Cardiology</h3>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    Advanced heart care with cutting-edge technology and compassionate expertise
+                </p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm font-medium">24/7 Care</span>
+                    <span class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm font-medium">Expert Team</span>
+                </div>
+            </div>
+            
+            <!-- Neurology -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+                <div class="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-brain text-2xl text-green-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Neurology</h3>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    Expert neurological care and treatment with advanced diagnostic capabilities
+                </p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">Advanced Tech</span>
+                    <span class="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">Specialists</span>
+                </div>
+            </div>
+            
+            <!-- Pediatrics -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+                <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-baby text-2xl text-purple-600"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Pediatrics</h3>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    Specialized care for children and infants with gentle, family-centered approach
+                </p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">Child-Friendly</span>
+                    <span class="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">Family Care</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+            <!-- Left Content -->
+            <div class="space-y-8">
+                <div class="space-y-4">
+                    <h2 class="text-4xl lg:text-5xl font-bold text-gray-900">
+                        Why Choose
+                        <span class="text-blue-600">Healis Clinic</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 leading-relaxed">
+                        We combine advanced medical technology with compassionate care to provide the best healthcare experience for you and your family.
+                    </p>
+                </div>
+                
+                <!-- Features List -->
+                <div class="space-y-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user-md text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Expert Medical Team</h3>
+                            <p class="text-gray-600">Board-certified physicians with years of experience in their specialties</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-clock text-green-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">24/7 Emergency Care</h3>
+                            <p class="text-gray-600">Round-the-clock emergency services with immediate response</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-microscope text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Advanced Technology</h3>
+                            <p class="text-gray-600">State-of-the-art medical equipment and diagnostic tools</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-heart text-orange-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Compassionate Care</h3>
+                            <p class="text-gray-600">Patient-centered approach with personalized treatment plans</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Content - Stats -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-8">
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="text-center">
+                        <div class="text-4xl font-bold text-blue-600 mb-2">25K+</div>
+                        <div class="text-gray-700 font-medium">Happy Patients</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold text-green-600 mb-2">50+</div>
+                        <div class="text-gray-700 font-medium">Expert Doctors</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold text-purple-600 mb-2">15+</div>
+                        <div class="text-gray-700 font-medium">Years Experience</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold text-orange-600 mb-2">99%</div>
+                        <div class="text-gray-700 font-medium">Success Rate</div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial -->
+                <div class="mt-8 p-6 bg-white rounded-xl shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="flex text-yellow-400 mr-2">
+                            <i class="fas fa-star text-sm"></i>
+                            <i class="fas fa-star text-sm"></i>
+                            <i class="fas fa-star text-sm"></i>
+                            <i class="fas fa-star text-sm"></i>
+                            <i class="fas fa-star text-sm"></i>
+                        </div>
+                        <span class="text-gray-600 text-sm">5.0 out of 5</span>
+                    </div>
+                    <p class="text-gray-700 italic mb-4">
+                        "Exceptional care and professional service. The doctors are knowledgeable and the staff is incredibly caring."
+                    </p>
+                    <div class="text-sm text-gray-600">
+                        <strong>Sarah Johnson</strong> - Patient
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact & Appointment Section -->
+<section class="py-20 bg-blue-600 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl lg:text-5xl font-bold mb-6">
+                Ready to Get Started?
+            </h2>
+            <p class="text-xl text-blue-100 max-w-2xl mx-auto">
+                Schedule your appointment today and experience premium healthcare with our expert medical team.
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8 mb-12">
+            <!-- Phone -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-phone text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Call Us</h3>
+                <p class="text-blue-100">(555) 123-4567</p>
+            </div>
+            
+            <!-- Email -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-envelope text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Email Us</h3>
+                <p class="text-blue-100">info@healisclinic.com</p>
+            </div>
+            
+            <!-- Location -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-map-marker-alt text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Visit Us</h3>
+                <p class="text-blue-100">123 Medical Center Dr<br>Healthcare City, HC 12345</p>
+            </div>
+        </div>
+        
+        <!-- CTA Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#" class="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                <i class="fas fa-calendar-check mr-2"></i>
+                Book Appointment Online
+            </a>
+            <a href="#" class="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors duration-200">
+                <i class="fas fa-ambulance mr-2"></i>
+                Emergency Services
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Clean, minimal animations */
+.hover\:shadow-xl:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Smooth transitions */
+* {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+/* Focus states for accessibility */
+button:focus,
+a:focus {
+    outline: 2px solid #3B82F6;
+    outline-offset: 2px;
+}
+</style>
+{% endblock %}

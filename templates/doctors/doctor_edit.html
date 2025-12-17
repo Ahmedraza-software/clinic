@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Doctor - {{ doctor.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Edit Doctor</h1>
+          <p class="mt-1 text-sm text-gray-600">Update the doctor's account and profile details</p>
+        </div>
+        <div class="space-x-2">
+          <a href="{% url 'doctors:detail' doctor.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50">Cancel</a>
+        </div>
+      </div>
+    </div>
+
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div class="text-sm px-4 py-3 rounded {{ message.tags|default:'info' }} bg-blue-50 text-blue-700">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="space-y-8">
+      {% csrf_token %}
+
+      <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">User Account</h3>
+          <p class="mt-1 text-sm text-gray-500">Basic information used for login and contact</p>
+        </div>
+        <div class="px-4 py-5 sm:p-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {{ user_form.non_field_errors }}
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            {{ user_form.email }}
+            {% if user_form.email.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ user_form.email.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Phone</label>
+            {{ user_form.phone }}
+            {% if user_form.phone.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ user_form.phone.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">First name</label>
+            {{ user_form.first_name }}
+            {% if user_form.first_name.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ user_form.first_name.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Last name</label>
+            {{ user_form.last_name }}
+            {% if user_form.last_name.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ user_form.last_name.errors|striptags }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Doctor Profile</h3>
+          <p class="mt-1 text-sm text-gray-500">Professional details and status</p>
+        </div>
+        <div class="px-4 py-5 sm:p-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {{ doctor_form.non_field_errors }}
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium text-gray-700">License Number</label>
+            {{ doctor_form.license_number }}
+            {% if doctor_form.license_number.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ doctor_form.license_number.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          <div class="sm:col-span-1">
+            <label class="block text-sm font-medium text-gray-700">Gender</label>
+            {{ doctor_form.gender }}
+            {% if doctor_form.gender.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ doctor_form.gender.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Specializations</label>
+            <div class="mt-2 space-y-2">
+              {{ doctor_form.specialization }}
+            </div>
+            {% if doctor_form.specialization.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ doctor_form.specialization.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Bio</label>
+            {{ doctor_form.bio }}
+            {% if doctor_form.bio.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ doctor_form.bio.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Experience (years)</label>
+            {{ doctor_form.experience }}
+            {% if doctor_form.experience.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ doctor_form.experience.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Consultation Fee</label>
+            {{ doctor_form.consultation_fee }}
+            {% if doctor_form.consultation_fee.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ doctor_form.consultation_fee.errors|striptags }}</p>
+            {% endif %}
+          </div>
+          <div class="sm:col-span-2">
+            <label class="inline-flex items-center">
+              {{ doctor_form.is_available }}
+              <span class="ml-2 text-sm text-gray-700">Available for appointments</span>
+            </label>
+            {% if doctor_form.is_available.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ doctor_form.is_available.errors|striptags }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

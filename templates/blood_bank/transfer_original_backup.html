@@ -1,0 +1,2682 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Blood Bank Management - Clinic Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Blood Bank Styles */
+
+/* Main Container - Left Aligned */
+.donor-container {
+    max-width: 1200px;
+    margin: 0;
+    margin-left: 2rem;
+    padding: 1rem;
+}
+
+/* Dashboard Header - Small & Centered */
+.dashboard-header {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    color: white;
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.dashboard-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.125rem;
+}
+
+.dashboard-subtitle {
+    font-size: 0.6875rem;
+    opacity: 0.9;
+}
+
+/* Statistics Grid - Compact */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+    margin-bottom: 0.75rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 6px;
+    padding: 0.625rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+    text-align: center;
+    min-width: 100px;
+    max-width: 110px;
+}
+
+.stat-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.375rem;
+    font-size: 0.625rem;
+}
+
+.stat-icon.red {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #dc2626;
+}
+
+.stat-icon.blue {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #2563eb;
+}
+
+.stat-icon.green {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #059669;
+}
+
+.stat-icon.purple {
+    background: linear-gradient(135deg, #e9d5ff, #d8b4fe);
+    color: #7c3aed;
+}
+
+.stat-number {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.125rem;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.6875rem;
+    color: #6b7280;
+    font-weight: 500;
+    margin-top: 0;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0;
+}
+
+.btn-action {
+    padding: 0.4375rem 0.875rem;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.btn-action i {
+    font-size: 0.75rem;
+}
+
+.btn-action.primary {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.btn-action.primary:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.btn-action.secondary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+.btn-action.secondary:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+/* Content Grid - Left Aligned */
+.content-grid {
+    display: flex;
+    justify-content: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Section Card - Compact */
+.section-card {
+    background: white;
+    border-radius: 6px;
+    padding: 0.875rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+    max-width: 100%;
+}
+
+.section-card.blood-inventory-card {
+    width: 100%;
+    max-width: 600px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.section-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #dc2626;
+    font-size: 0.75rem;
+}
+
+.section-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Donors List */
+.donors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.donor-item {
+    background: #f9fafb;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.donor-item:hover {
+    background: #f3f4f6;
+    transform: translateX(2px);
+}
+
+.donor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.375rem;
+}
+
+.donor-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.donor-badge {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 9999px;
+    font-size: 0.5625rem;
+    font-weight: 600;
+}
+
+.donor-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.25rem;
+    margin-bottom: 0.375rem;
+    font-size: 0.6875rem;
+    color: #6b7280;
+}
+
+.donor-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.1875rem;
+}
+
+.donor-detail-item i {
+    font-size: 0.625rem;
+    width: 0.75rem;
+}
+
+.donor-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-view {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1e40af;
+    border: none;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-view:hover {
+    background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+}
+
+.btn-view i {
+    font-size: 0.5625rem;
+}
+
+/* Blood Inventory Grid - Compact */
+.blood-inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.blood-card {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border-radius: 6px;
+    padding: 0.625rem 0.5rem;
+    border: 1px solid #fecaca;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.blood-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.15);
+}
+
+.blood-card.low-stock {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-color: #fcd34d;
+}
+
+.blood-card.critical-stock {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-color: #fca5a5;
+}
+
+.blood-type {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #dc2626;
+    margin-bottom: 0.25rem;
+    text-align: center;
+    line-height: 1;
+}
+
+.blood-quantity {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #991b1b;
+    text-align: center;
+    margin-bottom: 0.125rem;
+    line-height: 1;
+}
+
+.blood-units {
+    font-size: 0.6875rem;
+    color: #7f1d1d;
+    text-align: center;
+    font-weight: 500;
+    margin-top: 0;
+    margin-bottom: 0.375rem;
+}
+
+.blood-status {
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.625rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.blood-status.adequate {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.blood-status.low {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.blood-status.critical {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .blood-inventory-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    width: 700px;
+    max-width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.modal-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.modal-close {
+    font-size: 1.75rem;
+    cursor: pointer;
+    color: #6b7280;
+    border: none;
+    background: none;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.modal-body {
+    margin-bottom: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.625rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Donor Cards in Modal */
+.donor-card {
+    background: white;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.875rem;
+    margin-bottom: 0.625rem;
+    transition: all 0.2s ease;
+}
+
+.donor-card:hover {
+    border-color: #ef4444;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+    transform: translateY(-1px);
+}
+
+.donor-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.625rem;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.donor-card-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.donor-card-actions {
+    display: flex;
+    gap: 0.375rem;
+}
+
+.btn-donor-action {
+    padding: 0.3125rem 0.625rem;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    background: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-donor-action i {
+    font-size: 0.6875rem;
+}
+
+.btn-donor-action.view {
+    color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.btn-donor-action.view:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-donor-action.edit {
+    color: #059669;
+    border-color: #059669;
+}
+
+.btn-donor-action.edit:hover {
+    background: #059669;
+    color: white;
+}
+
+.btn-donor-action.delete {
+    color: #dc2626;
+    border-color: #dc2626;
+}
+
+.btn-donor-action.delete:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.donor-card-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.donor-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+.donor-detail-item i {
+    font-size: 0.75rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 1.5rem 0.75rem;
+    color: #9ca3af;
+}
+
+.empty-state i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    font-size: 0.75rem;
+}
+
+/* Modal Buttons */
+.btn-secondary {
+    padding: 0.4375rem 0.875rem;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.btn-primary {
+    padding: 0.4375rem 0.875rem;
+    border-radius: 6px;
+    border: none;
+    background: #ef4444;
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.btn-primary:hover {
+    background: #dc2626;
+}
+
+/* Search Input */
+.donors-search-section input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.donors-search-section input:focus {
+    outline: none;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.donors-search-section input::placeholder {
+    color: #9ca3af;
+}
+
+/* Donor Details Modal */
+#donorDetailsModal .modal-content {
+    max-width: 950px !important;
+    max-height: 90vh;
+}
+
+#donorDetailsModal .modal-body {
+    max-height: calc(90vh - 180px);
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+/* Custom Scrollbar */
+#donorDetailsModal .modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+#donorDetailsModal .modal-body::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+}
+
+#donorDetailsModal .modal-body::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+#donorDetailsModal .modal-body::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+#donorDetailsContent {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.detail-section {
+    background: #f9fafb;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.detail-section h3 {
+    color: #111827;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #ef4444;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detail-section h3 i {
+    color: #ef4444;
+    font-size: 0.875rem;
+}
+
+.detail-item {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.detail-item .detail-value {
+    font-size: 0.8125rem;
+    color: #111827;
+    font-weight: 500;
+}
+
+.detail-full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-full-width .detail-item {
+    grid-template-columns: 140px 1fr;
+}
+
+/* Edit input styles */
+.edit-input {
+    padding: 0.5rem 0.75rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    color: #111827;
+    transition: all 0.2s ease;
+    width: 100%;
+    background: white;
+}
+
+.edit-input:focus {
+    outline: none;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+select.edit-input {
+    cursor: pointer;
+}
+
+textarea.edit-input {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.btn-success {
+    padding: 0.4375rem 0.875rem;
+    border-radius: 6px;
+    border: none;
+    background: #059669;
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.btn-success:hover {
+    background: #047857;
+}
+
+@media (max-width: 768px) {
+    #donorDetailsContent {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Add Donor Modal */
+#donorModal .modal-content {
+    max-width: 1100px !important;
+    width: 95%;
+}
+
+#donorModal .modal-body {
+    overflow-y: visible;
+}
+
+.modal-form-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.modal-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.375rem;
+}
+
+.modal-form-label sup {
+    color: #ef4444;
+}
+
+.modal-form-input,
+.modal-form-select {
+    padding: 0.5625rem 0.75rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    color: #111827;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.modal-form-input:focus,
+.modal-form-select:focus {
+    outline: none;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.modal-form-input::placeholder {
+    color: #9ca3af;
+}
+
+.modal-form-select {
+    cursor: pointer;
+}
+
+textarea.modal-form-input {
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+}
+
+.form-section-title {
+    color: #111827;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin: 1rem 0 0.625rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #ef4444;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section-title:first-child {
+    margin-top: 0;
+}
+
+.form-section-title i {
+    color: #ef4444;
+    font-size: 0.875rem;
+}
+
+.modal-intro-text {
+    color: #6b7280;
+    font-size: 0.8125rem;
+    margin-bottom: 1rem;
+    padding: 0.625rem 0.75rem;
+    background: #f9fafb;
+    border-left: 3px solid #ef4444;
+    border-radius: 4px;
+}
+
+@media (max-width: 1024px) {
+    .modal-form-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .modal-form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    #donorModal .modal-content {
+        max-width: 95% !important;
+    }
+}
+
+/* Blood Transfer Section */
+.transfer-section {
+    background: white;
+    border-radius: 6px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+    margin-top: 1rem;
+}
+
+.transfer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #3b82f6;
+}
+
+.transfer-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.transfer-title i {
+    color: #3b82f6;
+    font-size: 1.125rem;
+}
+
+.transfer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.transfer-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.transfer-item:hover {
+    background: #f3f4f6;
+    border-color: #3b82f6;
+    transform: translateX(2px);
+}
+
+.transfer-item.hidden {
+    display: none;
+}
+
+.btn-view-all-transfers {
+    width: 100%;
+    padding: 0.5rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    color: #3b82f6;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    margin-top: 0.625rem;
+}
+
+.btn-view-all-transfers:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+}
+
+.transfer-patient-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.375rem;
+}
+
+.transfer-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.transfer-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.transfer-detail-item i {
+    font-size: 0.6875rem;
+    width: 14px;
+}
+
+.btn-transfer {
+    padding: 0.4375rem 0.875rem;
+    border-radius: 6px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.btn-transfer:hover {
+    background: #2563eb;
+}
+
+/* Responsive for top section */
+@media (max-width: 1200px) {
+    .donor-container > div[style*="grid-template-columns: 1fr 450px 350px"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .donor-container {
+        margin-left: 1rem;
+        max-width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-area flex-1 flex flex-col overflow-hidden">
+    <div class="donor-container">
+        
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-title">🩸 Blood Bank Donor Management</div>
+            <div class="dashboard-subtitle">Manage donors, track donations, and monitor blood inventory</div>
+        </div>
+        
+        <!-- Top Section: Stats + Transfers + Graph -->
+        <div style="display: grid; grid-template-columns: 1fr 450px 350px; gap: 1rem; margin-bottom: 0.75rem;">
+            <!-- Left: Statistics -->
+            <div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-number">{{ statistics.total_donors }}</div>
+                        <div class="stat-label">Total Donors</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <div class="stat-number">{{ statistics.donations_today }}</div>
+                        <div class="stat-label">Donations Today</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-calendar-week"></i>
+                        </div>
+                        <div class="stat-number">{{ statistics.donations_this_month }}</div>
+                        <div class="stat-label">This Month</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-number">{{ statistics.total_donations }}</div>
+                        <div class="stat-label">Total Donations</div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-action primary" onclick="openDonorModal()">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Add New Donor</span>
+                    </button>
+                    <button class="btn-action secondary" onclick="openAllDonorsModal()">
+                        <i class="fas fa-users"></i>
+                        <span>View All Donors</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Right: Blood Transfers -->
+            <div class="transfer-section" style="margin-top: 0;">
+                <div class="transfer-header">
+                    <div class="transfer-title">
+                        <i class="fas fa-exchange-alt"></i>
+                        Blood Transfers to Patients
+                    </div>
+                    <button class="btn-transfer" onclick="openTransferModal()">
+                        <i class="fas fa-plus"></i>
+                        New Transfer
+                    </button>
+                </div>
+                
+                <div class="transfer-list" id="transferList">
+                    <div class="empty-state">
+                        <i class="fas fa-exchange-alt"></i>
+                        <h5>No Transfers Yet</h5>
+                        <p>Start tracking blood unit transfers to patients.</p>
+                    </div>
+                </div>
+                <button class="btn-view-all-transfers" id="viewAllTransfersBtn" onclick="toggleViewAllTransfers()" style="display: none;">
+                    <i class="fas fa-chevron-down"></i>
+                    <span id="viewAllBtnText">View All Transfers</span>
+                </button>
+            </div>
+            
+            <!-- Right: Blood Flow Graph -->
+            <div class="section-card" style="margin-top: 0;">
+                <div class="section-header">
+                    <div class="section-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="section-title">Blood Flow</div>
+                </div>
+                <div style="height: 200px; position: relative;">
+                    <canvas id="bloodFlowChart" width="300" height="180"></canvas>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.75rem;">
+                    <div style="color: #059669; font-weight: 600;">
+                        <i class="fas fa-arrow-down"></i> In: <span id="totalUnitsIn">{{ total_units_in|default:0 }}</span>
+                    </div>
+                    <div style="color: #dc2626; font-weight: 600;">
+                        <i class="fas fa-arrow-up"></i> Out: <span id="totalUnitsOut">{{ total_units_out|default:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Blood Inventory - Left Aligned -->
+        <div class="content-grid">
+            <div class="section-card blood-inventory-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="section-title">Blood Inventory</div>
+                </div>
+                
+                <div class="blood-inventory-grid">
+                    {% for blood_type, count in inventory.items %}
+                    <div class="blood-card {% if count == 0 %}critical-stock{% elif count < 3 %}low-stock{% endif %}">
+                        <div class="blood-type">{{ blood_type }}</div>
+                        <div class="blood-quantity">{{ count }}</div>
+                        <div class="blood-units">units</div>
+                        <div class="blood-status {% if count == 0 %}critical{% elif count < 3 %}low{% else %}adequate{% endif %}">
+                            {% if count == 0 %}
+                                Out of Stock
+                            {% elif count < 3 %}
+                                Low Stock
+                            {% else %}
+                                Available
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Donor Modal -->
+    <div id="donorModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-user-plus" style="color: #ef4444; margin-right: 0.5rem;"></i>
+                    Add New Donor
+                </h2>
+                <button class="modal-close" onclick="closeDonorModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-intro-text">
+                    <i class="fas fa-info-circle"></i>
+                    Enter donor details to register them in the system
+                </p>
+                
+                <form id="donorForm" onsubmit="saveDonor(event)">
+                    {% csrf_token %}
+                    
+                    <!-- Personal Information -->
+                    <h3 class="form-section-title">
+                        <i class="fas fa-user"></i>
+                        Personal Information
+                    </h3>
+                    <div class="modal-form-row">
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Full Name *</label>
+                            <input type="text" name="full_name" class="modal-form-input" placeholder="Enter donor's full name" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Age *</label>
+                            <input type="number" name="age" class="modal-form-input" placeholder="Enter age" min="18" max="65" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Gender *</label>
+                            <select name="gender" class="modal-form-select" required>
+                                <option value="">Select gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Phone *</label>
+                            <input type="tel" name="phone" class="modal-form-input" placeholder="Enter phone number" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Medical Information -->
+                    <h3 class="form-section-title">
+                        <i class="fas fa-heartbeat"></i>
+                        Medical Information
+                    </h3>
+                    <div class="modal-form-row">
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Blood Group *</label>
+                            <select name="blood_group" class="modal-form-select" required>
+                                <option value="">Select blood group</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Weight (kg) *</label>
+                            <input type="number" name="weight" class="modal-form-input" placeholder="Enter weight in kg" step="0.1" min="45" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Number of Units Donated *</label>
+                            <input type="number" name="donation_count" class="modal-form-input" placeholder="Enter number of units" min="0" value="1" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Donation Type</label>
+                            <select name="donation_type" class="modal-form-select">
+                                <option value="whole">Whole Blood</option>
+                                <option value="plasma">Plasma</option>
+                                <option value="platelets">Platelets</option>
+                                <option value="double_red">Double Red Cells</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Donation -->
+                    <h3 class="form-section-title">
+                        <i class="fas fa-calendar-check"></i>
+                        Current Donation
+                    </h3>
+                    <div class="modal-form-row">
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Donation Date *</label>
+                            <input type="date" name="donation_date" class="modal-form-input" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Donation Time *</label>
+                            <input type="time" name="donation_time" class="modal-form-input" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Email</label>
+                            <input type="email" name="email" class="modal-form-input" placeholder="Email address">
+                        </div>
+                        <div class="modal-form-group">
+                            <label class="modal-form-label">Address</label>
+                            <input type="text" name="address" class="modal-form-input" placeholder="Address">
+                        </div>
+                    </div>
+                    
+                    <!-- Medical Notes -->
+                    <div class="modal-form-row">
+                        <div class="modal-form-group" style="grid-column: 1 / -1;">
+                            <label class="modal-form-label">Medical Notes</label>
+                            <textarea name="medical_notes" class="modal-form-input" rows="2" placeholder="Any medical conditions, medications, or important notes..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div style="display: flex; justify-content: flex-end; margin-top: 1rem; gap: 0.625rem; padding-top: 0.875rem; border-top: 1px solid #e5e7eb;">
+                        <button type="button" class="btn-secondary" onclick="closeDonorModal()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Register Donor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+<!-- Donor Details Modal -->
+    <div id="donorDetailsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-user-circle" style="color: #ef4444; margin-right: 0.5rem;"></i>
+                    Donor Details
+                </h2>
+                <button class="modal-close" onclick="closeDonorDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="donorDetailsContent">
+                    <!-- Donor details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeDonorDetailsModal()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn-primary" id="editDonorBtn" onclick="enableDonorEditing()">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button type="button" class="btn-success" id="saveDonorBtn" onclick="saveDonorChanges()" style="display: none;">
+                    <i class="fas fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+<!-- All Donors Modal -->
+    <div id="allDonorsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">All Donors</h2>
+                <button class="modal-close" onclick="closeAllDonorsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="donors-search-section">
+                    <input type="text" id="donorSearchInput" placeholder="🔍 Search donors by name, blood group, or phone...">
+                </div>
+                <div class="donors-grid-section">
+                    <div id="allDonorsList">
+                        <!-- All donors will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeAllDonorsModal()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn-primary" onclick="exportDonorsList()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </div>
+    
+<!-- Blood Transfer Modal -->
+<div id="transferModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fas fa-exchange-alt" style="color: #3b82f6; margin-right: 0.5rem;"></i>
+                New Blood Transfer
+            </h2>
+            <button class="modal-close" onclick="closeTransferModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-intro-text">
+                <i class="fas fa-info-circle"></i>
+                Record blood unit transfer to patient under doctor supervision
+            </p>
+            
+            <form id="transferForm" onsubmit="saveTransfer(event)">
+                {% csrf_token %}
+                
+                <!-- Patient Information -->
+                <h3 class="form-section-title">
+                    <i class="fas fa-user-injured"></i>
+                    Patient Information
+                </h3>
+                <div class="modal-form-row">
+                    <div class="modal-form-group">
+                        <label class="modal-form-label">Patient Name *</label>
+                        <select name="patient_id" id="patientSelect" class="modal-form-select" onchange="updatePatientInfo()" required>
+                            <option value="">Select patient</option>
+                            {% for patient in patients %}
+                            <option value="{{ patient.id }}" 
+                                    data-patient-id="P-{{ patient.id }}" 
+                                    data-blood-type="{{ patient.blood_group }}">
+                                {{ patient.user.first_name }} {{ patient.user.last_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="modal-form-group">
+                        <label class="modal-form-label">Patient ID</label>
+                        <input type="text" id="patientIdDisplay" class="modal-form-input" placeholder="Auto-filled" readonly style="background: #f3f4f6;">
+                    </div>
+                    <div class="modal-form-group">
+                        <label class="modal-form-label">Blood Type *</label>
+                        <select name="blood_type" id="bloodTypeSelect" class="modal-form-select" onchange="checkBloodAvailability()" required>
+                            <option value="">Auto-filled</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                        <div id="availabilityIndicator" style="margin-top: 0.5rem; font-size: 0.75rem; font-weight: 600;"></div>
+                    </div>
+                </div>
+                
+                <!-- Transfer Details -->
+                <h3 class="form-section-title">
+                    <i class="fas fa-clipboard-check"></i>
+                    Transfer Details
+                </h3>
+                <div class="modal-form-row">
+                    <div class="modal-form-group">
+                        <label class="modal-form-label">Units Required *</label>
+                        <input type="number" name="units" class="modal-form-input" placeholder="Number of units" min="1" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label class="modal-form-label">Transfer Date *</label>
+                        <input type="date" name="transfer_date" class="modal-form-input" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label class="modal-form-label">Transfer Time *</label>
+                        <input type="time" name="transfer_time" class="modal-form-input" required>
+                    </div>
+                </div>
+                
+                <!-- Doctor Information -->
+                <h3 class="form-section-title">
+                    <i class="fas fa-user-md"></i>
+                    Supervising Doctor
+                </h3>
+                <div class="modal-form-row">
+                    <div class="modal-form-group">
+                        <label class="modal-form-label">Doctor Name *</label>
+                        <select name="doctor_id" id="doctorSelect" class="modal-form-select" onchange="updateDoctorInfo()" required>
+                            <option value="">Select doctor</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}" 
+                                    data-department="{% for spec in doctor.specialization.all %}{{ spec.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                                Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="modal-form-group">
+                        <label class="modal-form-label">Department</label>
+                        <input type="text" id="departmentDisplay" name="department" class="modal-form-input" placeholder="Auto-filled" readonly style="background: #f3f4f6;">
+                    </div>
+                    <div class="modal-form-group">
+                        <label class="modal-form-label">Emergency?</label>
+                        <select name="is_emergency" class="modal-form-select">
+                            <option value="no">No</option>
+                            <option value="yes">Yes - Emergency</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Notes -->
+                <div class="modal-form-row">
+                    <div class="modal-form-group" style="grid-column: 1 / -1;">
+                        <label class="modal-form-label">Notes</label>
+                        <textarea name="notes" class="modal-form-input" rows="2" placeholder="Additional notes or remarks..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div style="display: flex; justify-content: flex-end; margin-top: 1rem; gap: 0.625rem; padding-top: 0.875rem; border-top: 1px solid #e5e7eb;">
+                    <button type="button" class="btn-secondary" onclick="closeTransferModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn-transfer">
+                        <i class="fas fa-check"></i> Record Transfer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Modal functions
+    function openDonorModal() {
+        document.getElementById('donorModal').classList.add('active');
+        // Set today's date and current time
+        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const timeString = now.toTimeString().slice(0, 5);
+        document.querySelector('input[name="donation_date"]').value = today;
+        document.querySelector('input[name="donation_time"]').value = timeString;
+    }
+    
+    function closeDonorModal() {
+        document.getElementById('donorModal').classList.remove('active');
+        document.getElementById('donorForm').reset();
+    }
+    
+    // Save donor function using backend API
+    async function saveDonor(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        try {
+            console.log('Submitting donor form...');
+            
+            const response = await fetch('/blood-bank/api/add-donor/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            });
+            
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('Response data:', result);
+            
+            if (result.success) {
+                // Close modal first
+                closeDonorModal();
+                
+                // Show success message
+                showSuccessMessage(result.message);
+                
+                // Try to update UI elements (non-critical)
+                try {
+                    if (result.statistics) {
+                        updateStatistics(result.statistics);
+                    }
+                } catch (e) {
+                    console.log('Note: Could not update statistics display:', e);
+                }
+                
+                // Update blood inventory from server
+                try {
+                    if (result.inventory) {
+                        console.log('Updating inventory with:', result.inventory);
+                        updateBloodInventory(result.inventory);
+                    }
+                } catch (e) {
+                    console.log('Note: Could not update inventory display:', e);
+                }
+                
+                try {
+                    if (result.donor) {
+                        addDonorToList(result.donor);
+                    }
+                } catch (e) {
+                    console.log('Note: Could not update donor list display:', e);
+                }
+            } else {
+                // Show error message from server
+                console.error('Server error:', result.message);
+                showErrorMessage(result.message || 'Failed to register donor. Please check all fields.');
+            }
+        } catch (error) {
+            console.error('Error details:', error);
+            showErrorMessage('An error occurred while registering the donor. Please check the console for details.');
+        }
+    }
+    
+    // Add donor to the list function
+    function addDonorToList(donor) {
+        const donorsList = document.getElementById('donorsList');
+        
+        // If donorsList doesn't exist, skip this step
+        if (!donorsList) {
+            console.log('Donors list element not found, skipping display update');
+            return;
+        }
+        
+        // Remove empty state message if it exists
+        const emptyState = donorsList.querySelector('div[style*="text-align: center"]');
+        if (emptyState) {
+            emptyState.remove();
+        }
+        
+        // Create new donor item
+        const donorItem = document.createElement('div');
+        donorItem.className = 'donor-item';
+        donorItem.innerHTML = `
+            <div class="donor-info">
+                <div class="donor-name">${donor.full_name}</div>
+                <div class="donor-details">
+                    <i class="fas fa-tint" style="color: #ef4444;"></i> ${donor.blood_group} | 
+                    <i class="fas fa-phone" style="color: #3b82f6;"></i> ${donor.phone} | 
+                    <i class="fas fa-weight" style="color: #6b7280;"></i> ${donor.weight}kg |
+                    <i class="fas fa-birthday-cake" style="color: #6b7280;"></i> ${donor.age} years
+                </div>
+            </div>
+            <div class="donor-actions">
+                <button class="btn-view" onclick="viewDonorDetails(${donor.id})">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            </div>
+        `;
+        
+        // Add to the top of the list
+        donorsList.insertBefore(donorItem, donorsList.firstChild);
+        
+        // Limit to 10 most recent donors
+        const donorItems = donorsList.querySelectorAll('.donor-item');
+        if (donorItems.length > 10) {
+            donorItems[donorItems.length - 1].remove();
+        }
+    }
+    
+    // View donor details function
+    async function viewDonorDetails(donorId) {
+        try {
+            const response = await fetch(`/blood-bank/api/donor/${donorId}/`);
+            const result = await response.json();
+            
+            if (result.success) {
+                // Close All Donors modal first
+                closeAllDonorsModal();
+                
+                // Then display donor details
+                displayDonorDetails(result.donor);
+                document.getElementById('donorDetailsModal').classList.add('active');
+            } else {
+                showErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('Error loading donor details.');
+        }
+    }
+    
+    // Display donor details in modal
+    function displayDonorDetails(donor) {
+        const content = document.getElementById('donorDetailsContent');
+        content.innerHTML = `
+            <div class="detail-section">
+                <h3><i class="fas fa-user"></i> Personal Information</h3>
+                <div class="detail-item">
+                    <label>Full Name:</label>
+                    <span class="detail-value" data-field="full_name">${donor.full_name}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Age:</label>
+                    <span class="detail-value" data-field="age">${donor.age}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Gender:</label>
+                    <span class="detail-value" data-field="gender">${donor.gender}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Phone:</label>
+                    <span class="detail-value" data-field="phone">${donor.phone}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Email:</label>
+                    <span class="detail-value" data-field="email">${donor.email || 'N/A'}</span>
+                </div>
+            </div>
+            
+            <div class="detail-section">
+                <h3><i class="fas fa-heartbeat"></i> Medical Information</h3>
+                <div class="detail-item">
+                    <label>Blood Group:</label>
+                    <span class="detail-value" data-field="blood_group">${donor.blood_group}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Weight:</label>
+                    <span class="detail-value" data-field="weight">${donor.weight} kg</span>
+                </div>
+                <div class="detail-item">
+                    <label>Units Donated:</label>
+                    <span class="detail-value" data-field="donation_count">${donor.donation_count}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Donation Type:</label>
+                    <span class="detail-value" data-field="donation_type">${donor.donation_type}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Last Donation:</label>
+                    <span class="detail-value">${donor.donation_date} at ${donor.donation_time}</span>
+                </div>
+            </div>
+            
+            <div class="detail-section detail-full-width">
+                <h3><i class="fas fa-info-circle"></i> Additional Information</h3>
+                <div class="detail-item">
+                    <label>Address:</label>
+                    <span class="detail-value" data-field="address">${donor.address || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Medical Notes:</label>
+                    <span class="detail-value" data-field="medical_notes">${donor.medical_notes || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Registered At:</label>
+                    <span class="detail-value">${new Date(donor.registered_at).toLocaleString()}</span>
+                </div>
+            </div>
+        `;
+        
+        // Store donor ID for editing
+        window.currentDonorId = donor.id;
+    }
+    
+    // Close donor details modal
+    function closeDonorDetailsModal() {
+        document.getElementById('donorDetailsModal').classList.remove('active');
+        document.getElementById('editDonorBtn').style.display = 'inline-flex';
+        document.getElementById('saveDonorBtn').style.display = 'none';
+    }
+    
+    // Enable donor editing
+    function enableDonorEditing() {
+        const values = document.querySelectorAll('.detail-value[data-field]');
+        values.forEach(value => {
+            const field = value.dataset.field;
+            const currentValue = value.textContent.replace(' kg', '').replace(' N/A', '').trim();
+            
+            if (field === 'gender' || field === 'blood_group' || field === 'donation_type') {
+                // Create select dropdown
+                const select = document.createElement('select');
+                select.className = 'edit-input';
+                select.dataset.field = field;
+                
+                if (field === 'gender') {
+                    select.innerHTML = '<option value="male">Male</option><option value="female">Female</option><option value="other">Other</option>';
+                } else if (field === 'blood_group') {
+                    select.innerHTML = '<option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option><option value="O+">O+</option><option value="O-">O-</option>';
+                } else if (field === 'donation_type') {
+                    select.innerHTML = '<option value="whole">Whole Blood</option><option value="plasma">Plasma</option><option value="platelets">Platelets</option><option value="double_red">Double Red Cells</option>';
+                }
+                
+                select.value = currentValue.toLowerCase().replace(' ', '_');
+                value.replaceWith(select);
+            } else if (field === 'address' || field === 'medical_notes') {
+                // Create textarea for long text fields
+                const textarea = document.createElement('textarea');
+                textarea.className = 'edit-input';
+                textarea.dataset.field = field;
+                textarea.value = currentValue === 'N/A' ? '' : currentValue;
+                textarea.rows = 3;
+                value.replaceWith(textarea);
+            } else {
+                // Create text input
+                const input = document.createElement('input');
+                input.type = field === 'age' || field === 'donation_count' || field === 'weight' ? 'number' : 'text';
+                input.className = 'edit-input';
+                input.dataset.field = field;
+                input.value = currentValue === 'N/A' ? '' : currentValue;
+                value.replaceWith(input);
+            }
+        });
+        
+        document.getElementById('editDonorBtn').style.display = 'none';
+        document.getElementById('saveDonorBtn').style.display = 'inline-flex';
+    }
+    
+    // Save donor changes
+    async function saveDonorChanges() {
+        const inputs = document.querySelectorAll('.edit-input');
+        const formData = new FormData();
+        
+        inputs.forEach(input => {
+            formData.append(input.dataset.field, input.value);
+        });
+        formData.append('donor_id', window.currentDonorId);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        try {
+            const response = await fetch('/blood-bank/api/update-donor/', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showSuccessMessage('Donor updated successfully!');
+                closeDonorDetailsModal();
+                // Refresh the page to show updated data
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('Error updating donor.');
+        }
+    }
+    
+    // Update statistics function
+    function updateStatistics(stats) {
+        if (stats) {
+            document.querySelector('.stat-card:nth-child(1) .stat-number').textContent = stats.total_donors;
+            document.querySelector('.stat-card:nth-child(2) .stat-number').textContent = stats.donations_today;
+            document.querySelector('.stat-card:nth-child(3) .stat-number').textContent = stats.donations_this_month;
+            document.querySelector('.stat-card:nth-child(4) .stat-number').textContent = stats.total_donations;
+        }
+    }
+    
+    // Update blood inventory function
+    function updateBloodInventory(inventory) {
+        if (inventory) {
+            const bloodInventory = document.getElementById('bloodInventory');
+            let html = '';
+            
+            const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+            
+            bloodTypes.forEach(type => {
+                const quantity = inventory[type] || 0;
+                let cardClass = 'blood-type-card';
+                
+                // Add status classes based on quantity
+                if (quantity === 0) {
+                    cardClass += ' critical-stock';
+                } else if (quantity < 3) {
+                    cardClass += ' low-stock';
+                }
+                
+                html += `
+                    <div class="${cardClass}">
+                        <div class="blood-type">${type}</div>
+                        <div class="blood-quantity">${quantity}</div>
+                        <div class="blood-units">units</div>
+                    </div>
+                `;
+            });
+            
+            bloodInventory.innerHTML = html;
+        }
+    }
+    
+    // Show success message
+    function showSuccessMessage(message) {
+        // Create success notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        `;
+        notification.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+    
+    // Show error message
+    function showErrorMessage(message) {
+        // Create error notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        `;
+        notification.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('donorModal').addEventListener('click', function(event) {
+        if (event.target === this) {
+            closeDonorModal();
+        }
+    });
+    
+    // Load blood transfers from database
+    async function loadBloodTransfers() {
+        try {
+            const response = await fetch('/blood-bank/api/transfers/');
+            const result = await response.json();
+            
+            if (result.success && result.transfers.length > 0) {
+                // Clear empty state
+                const transferList = document.getElementById('transferList');
+                transferList.innerHTML = '';
+                
+                // Add each transfer
+                result.transfers.forEach((transfer, index) => {
+                    addTransferToList(transfer, index);
+                });
+                
+                // Show "View All" button if more than 1 transfer
+                if (result.transfers.length > 1) {
+                    document.getElementById('viewAllTransfersBtn').style.display = 'flex';
+                }
+            }
+        } catch (error) {
+            console.error('Error loading transfers:', error);
+        }
+    }
+    
+    // Toggle view all transfers
+    let showingAllTransfers = false;
+    function toggleViewAllTransfers() {
+        const transferItems = document.querySelectorAll('.transfer-item');
+        const btnText = document.getElementById('viewAllBtnText');
+        const btnIcon = document.querySelector('#viewAllTransfersBtn i');
+        
+        showingAllTransfers = !showingAllTransfers;
+        
+        transferItems.forEach((item, index) => {
+            if (index >= 1) {
+                if (showingAllTransfers) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            }
+        });
+        
+        if (showingAllTransfers) {
+            btnText.textContent = 'Show Less';
+            btnIcon.className = 'fas fa-chevron-up';
+        } else {
+            btnText.textContent = 'View All Transfers';
+            btnIcon.className = 'fas fa-chevron-down';
+        }
+    }
+    
+    // Initialize - load transfers on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadBloodTransfers();
+    });
+    
+    // All Donors Modal functions
+    function openAllDonorsModal() {
+        document.getElementById('allDonorsModal').classList.add('active');
+        loadAllDonors();
+    }
+    
+    function closeAllDonorsModal() {
+        document.getElementById('allDonorsModal').classList.remove('active');
+    }
+    
+    // Load all donors from API
+    async function loadAllDonors() {
+        try {
+            const response = await fetch('/blood-bank/api/all-donors/');
+            const result = await response.json();
+            
+            if (result.success) {
+                displayAllDonors(result.donors);
+                setupDonorSearch(result.donors);
+            } else {
+                showErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('Error loading donors list.');
+        }
+    }
+    
+    // Display all donors in the modal
+    function displayAllDonors(donors) {
+        const allDonorsList = document.getElementById('allDonorsList');
+        
+        if (donors.length === 0) {
+            allDonorsList.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #6b7280;">
+                    <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>No donors registered yet.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        donors.forEach(donor => {
+            html += `
+                <div class="donor-card" data-donor-id="${donor.id}">
+                    <div class="donor-card-header">
+                        <div class="donor-card-name">${donor.full_name}</div>
+                        <div class="donor-card-actions">
+                            <button class="btn-donor-action view" onclick="viewDonorDetails(${donor.id})">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="btn-donor-action edit" onclick="editDonor(${donor.id})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn-donor-action delete" onclick="confirmDeleteDonor(${donor.id}, '${donor.full_name.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="donor-card-details">
+                        <div class="donor-detail-item">
+                            <i class="fas fa-tint" style="color: #ef4444;"></i>
+                            <span>${donor.blood_group}</span>
+                        </div>
+                        <div class="donor-detail-item">
+                            <i class="fas fa-phone" style="color: #6b7280;"></i>
+                            <span>${donor.phone}</span>
+                        </div>
+                        <div class="donor-detail-item">
+                            <i class="fas fa-weight" style="color: #6b7280;"></i>
+                            <span>${donor.weight}kg</span>
+                        </div>
+                        <div class="donor-detail-item">
+                            <i class="fas fa-calendar" style="color: #6b7280;"></i>
+                            <span>${donor.age} years</span>
+                        </div>
+                        <div class="donor-detail-item">
+                            <i class="fas fa-trophy" style="color: #f59e0b;"></i>
+                            <span>${donor.donation_count} donations</span>
+                        </div>
+                        <div class="donor-detail-item">
+                            <i class="fas fa-clock" style="color: #6b7280;"></i>
+                            <span>Added ${new Date(donor.registered_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        allDonorsList.innerHTML = html;
+    }
+    
+    // Setup donor search functionality
+    function setupDonorSearch(donors) {
+        const searchInput = document.getElementById('donorSearchInput');
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            const filteredDonors = donors.filter(donor => 
+                donor.full_name.toLowerCase().includes(searchTerm) ||
+                donor.blood_group.toLowerCase().includes(searchTerm) ||
+                donor.phone.toLowerCase().includes(searchTerm) ||
+                donor.email.toLowerCase().includes(searchTerm)
+            );
+            
+            displayAllDonors(filteredDonors);
+        });
+    }
+    
+    // Edit donor function (opens details modal in edit mode)
+    async function editDonor(donorId) {
+        try {
+            const response = await fetch(`/blood-bank/api/donor/${donorId}/`);
+            const result = await response.json();
+            
+            if (result.success) {
+                closeAllDonorsModal();
+                displayDonorDetails(result.donor);
+                document.getElementById('donorDetailsModal').classList.add('active');
+                // Auto-enable editing
+                setTimeout(() => enableDonorEditing(), 100);
+            } else {
+                showErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('Error loading donor details.');
+        }
+    }
+    
+    // Export donors list function
+    function exportDonorsList() {
+        const donorCards = document.querySelectorAll('.donor-card');
+        let csvContent = "Name,Blood Group,Phone,Weight,Age,Donations,Email,Address,Registered At\n";
+        
+        donorCards.forEach(card => {
+            const name = card.querySelector('.donor-card-name').textContent;
+            const details = card.querySelectorAll('.donor-detail-item span');
+            
+            csvContent += `"${name}",`;
+            csvContent += `"${details[0].textContent}",`; // Blood Group
+            csvContent += `"${details[1].textContent}",`; // Phone
+            csvContent += `"${details[2].textContent}",`; // Weight
+            csvContent += `"${details[3].textContent}",`; // Age
+            csvContent += `"${details[4].textContent}",`; // Donations
+            csvContent += `"",`; // Email (would need to be added to display
+            csvContent += `"",`; // Address (would need to be added to display
+            csvContent += `"${details[5].textContent}"\n`; // Registered At
+        });
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `donors_list_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showSuccessMessage('Donors list exported successfully!');
+    }
+    
+    // Confirm delete donor with custom modal
+    function confirmDeleteDonor(donorId, donorName) {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay active';
+        modal.style.zIndex = '1002';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 450px;">
+                <div class="modal-header" style="border-bottom: 2px solid #dc2626;">
+                    <h2 class="modal-title" style="color: #dc2626;">
+                        <i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>
+                        Confirm Delete
+                    </h2>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <p style="color: #991b1b; font-weight: 600; margin-bottom: 0.5rem;">⚠️ Warning: This action cannot be undone!</p>
+                        <p style="color: #6b7280; line-height: 1.6;">
+                            Are you sure you want to permanently delete donor <strong>${donorName}</strong>?<br><br>
+                            This will remove all their donation records from the system.
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="button" class="btn-primary" style="background: #dc2626;" onclick="deleteDonor(${donorId}); this.closest('.modal-overlay').remove();">
+                        <i class="fas fa-trash"></i> Yes, Delete
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Delete donor function
+    async function deleteDonor(donorId) {
+        try {
+            const formData = new FormData();
+            formData.append('donor_id', donorId);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            
+            const response = await fetch('/blood-bank/api/delete-donor/', {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Remove donor card from UI
+                const donorCard = document.querySelector(`.donor-card[data-donor-id="${donorId}"]`);
+                if (donorCard) {
+                    donorCard.style.transition = 'all 0.3s ease';
+                    donorCard.style.opacity = '0';
+                    donorCard.style.transform = 'scale(0.9)';
+                    setTimeout(() => donorCard.remove(), 300);
+                }
+                
+                // Update statistics
+                if (result.statistics) {
+                    updateStatistics(result.statistics);
+                }
+                
+                // Update blood inventory
+                if (result.inventory) {
+                    updateBloodInventory(result.inventory);
+                }
+                
+                // Show success message
+                showSuccessMessage(result.message || 'Donor deleted successfully!');
+            } else {
+                showErrorMessage(result.message || 'Failed to delete donor.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('An error occurred while deleting the donor.');
+        }
+    }
+    
+    // Blood Transfer Modal functions
+    function openTransferModal() {
+        document.getElementById('transferModal').classList.add('active');
+        // Set today's date and current time
+        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const timeString = now.toTimeString().slice(0, 5);
+        document.querySelector('#transferForm input[name="transfer_date"]').value = today;
+        document.querySelector('#transferForm input[name="transfer_time"]').value = timeString;
+    }
+    
+    // Update patient info when patient is selected
+    function updatePatientInfo() {
+        const patientSelect = document.getElementById('patientSelect');
+        const selectedOption = patientSelect.options[patientSelect.selectedIndex];
+        
+        if (selectedOption.value) {
+            // Auto-fill Patient ID
+            document.getElementById('patientIdDisplay').value = selectedOption.dataset.patientId || selectedOption.value;
+            
+            // Auto-fill Blood Type
+            const bloodType = selectedOption.dataset.bloodType;
+            if (bloodType) {
+                document.getElementById('bloodTypeSelect').value = bloodType;
+                checkBloodAvailability(); // Check availability when blood type is auto-filled
+            }
+        } else {
+            document.getElementById('patientIdDisplay').value = '';
+            document.getElementById('bloodTypeSelect').value = '';
+            document.getElementById('availabilityIndicator').innerHTML = '';
+        }
+    }
+    
+    // Check and display blood availability in real-time
+    function checkBloodAvailability() {
+        const bloodTypeSelect = document.getElementById('bloodTypeSelect');
+        const bloodType = bloodTypeSelect.value;
+        const indicator = document.getElementById('availabilityIndicator');
+        
+        if (!bloodType) {
+            indicator.innerHTML = '';
+            return;
+        }
+        
+        const inventory = getCurrentInventory();
+        const availableUnits = inventory[bloodType] || 0;
+        
+        if (availableUnits === 0) {
+            indicator.innerHTML = `
+                <i class="fas fa-times-circle" style="color: #dc2626;"></i>
+                <span style="color: #dc2626;">Out of Stock - 0 units available</span>
+            `;
+        } else if (availableUnits < 3) {
+            indicator.innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+                <span style="color: #f59e0b;">Low Stock - ${availableUnits} unit(s) available</span>
+            `;
+        } else {
+            indicator.innerHTML = `
+                <i class="fas fa-check-circle" style="color: #059669;"></i>
+                <span style="color: #059669;">Available - ${availableUnits} unit(s) in stock</span>
+            `;
+        }
+    }
+    
+    // Update doctor info when doctor is selected
+    function updateDoctorInfo() {
+        const doctorSelect = document.getElementById('doctorSelect');
+        const selectedOption = doctorSelect.options[doctorSelect.selectedIndex];
+        
+        if (selectedOption.value) {
+            // Auto-fill Department
+            document.getElementById('departmentDisplay').value = selectedOption.dataset.department || '';
+        } else {
+            document.getElementById('departmentDisplay').value = '';
+        }
+    }
+    
+    function closeTransferModal() {
+        document.getElementById('transferModal').classList.remove('active');
+        document.getElementById('transferForm').reset();
+        // Clear auto-filled fields
+        document.getElementById('patientIdDisplay').value = '';
+        document.getElementById('departmentDisplay').value = '';
+        document.getElementById('bloodTypeSelect').value = '';
+        document.getElementById('availabilityIndicator').innerHTML = '';
+    }
+    
+    // Save transfer function
+    async function saveTransfer(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        // Get blood type and units
+        const bloodType = formData.get('blood_type');
+        const unitsRequested = parseInt(formData.get('units'));
+        
+        // Validate blood availability
+        if (!validateBloodAvailability(bloodType, unitsRequested)) {
+            return; // Validation failed, don't proceed
+        }
+        
+        // Get patient and doctor names from selected options
+        const patientSelect = document.getElementById('patientSelect');
+        const doctorSelect = document.getElementById('doctorSelect');
+        const patientName = patientSelect.options[patientSelect.selectedIndex].text;
+        const doctorName = doctorSelect.options[doctorSelect.selectedIndex].text;
+        
+        // Prepare data for API
+        formData.set('patient_name', patientName);
+        formData.set('doctor_name', doctorName.replace('Dr. ', ''));
+        formData.set('patient_id', document.getElementById('patientIdDisplay').value);
+        
+        try {
+            // Save to database via API
+            const response = await fetch('/blood-bank/api/add-transfer/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Close modal and show success message first
+                closeTransferModal();
+                showSuccessMessage(result.message);
+                
+                // Try to update UI (non-critical)
+                try {
+                    addTransferToList(result.transfer);
+                } catch (e) {
+                    console.log('Note: Could not add transfer to list display:', e);
+                }
+                
+                // Update inventory from server (already accounts for transfer)
+                try {
+                    if (result.inventory) {
+                        updateBloodInventory(result.inventory);
+                    }
+                } catch (e) {
+                    console.log('Note: Could not update inventory from server:', e);
+                }
+            } else {
+                showErrorMessage(result.message || 'Failed to record transfer');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('An error occurred while recording the transfer.');
+        }
+    }
+    
+    // Validate blood availability before transfer
+    function validateBloodAvailability(bloodType, unitsRequested) {
+        // Get current inventory from the page
+        const inventory = getCurrentInventory();
+        const availableUnits = inventory[bloodType] || 0;
+        
+        // Check if blood type is out of stock
+        if (availableUnits === 0) {
+            showCustomError(
+                'Blood Not Available',
+                `<strong>${bloodType}</strong> is currently <span style="color: #dc2626; font-weight: 600;">OUT OF STOCK</span>.<br><br>` +
+                `Available units: <strong>0</strong><br>` +
+                `Please select a different blood type or wait for new donations.`
+            );
+            return false;
+        }
+        
+        // Check if requested units exceed available units
+        if (unitsRequested > availableUnits) {
+            showCustomError(
+                'Insufficient Blood Units',
+                `Not enough <strong>${bloodType}</strong> units available.<br><br>` +
+                `Requested: <strong>${unitsRequested} unit(s)</strong><br>` +
+                `Available: <strong>${availableUnits} unit(s)</strong><br><br>` +
+                `Please reduce the number of units or select a different blood type.`
+            );
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Get current inventory from the DOM
+    function getCurrentInventory() {
+        const inventory = {};
+        document.querySelectorAll('.blood-card').forEach(card => {
+            const bloodType = card.querySelector('.blood-type').textContent.trim();
+            const quantity = parseInt(card.querySelector('.blood-quantity').textContent);
+            inventory[bloodType] = quantity;
+        });
+        return inventory;
+    }
+    
+    // Update blood inventory display after transfer
+    function updateBloodInventoryAfterTransfer(bloodType, unitsTransferred) {
+        const cards = document.querySelectorAll('.blood-card');
+        cards.forEach(card => {
+            const cardBloodType = card.querySelector('.blood-type').textContent.trim();
+            if (cardBloodType === bloodType) {
+                const quantityEl = card.querySelector('.blood-quantity');
+                const currentQuantity = parseInt(quantityEl.textContent);
+                const newQuantity = currentQuantity - unitsTransferred;
+                
+                // Update quantity
+                quantityEl.textContent = newQuantity;
+                
+                // Update status
+                const statusEl = card.querySelector('.blood-status');
+                card.classList.remove('critical-stock', 'low-stock');
+                
+                if (newQuantity === 0) {
+                    card.classList.add('critical-stock');
+                    statusEl.classList.remove('adequate', 'low');
+                    statusEl.classList.add('critical');
+                    statusEl.textContent = 'Out of Stock';
+                } else if (newQuantity < 3) {
+                    card.classList.add('low-stock');
+                    statusEl.classList.remove('adequate', 'critical');
+                    statusEl.classList.add('low');
+                    statusEl.textContent = 'Low Stock';
+                } else {
+                    statusEl.classList.remove('low', 'critical');
+                    statusEl.classList.add('adequate');
+                    statusEl.textContent = 'Available';
+                }
+            }
+        });
+    }
+    
+    // Show custom error modal
+    function showCustomError(title, message) {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay active';
+        modal.style.zIndex = '1001';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 450px;">
+                <div class="modal-header" style="border-bottom: 2px solid #dc2626;">
+                    <h2 class="modal-title" style="color: #dc2626;">
+                        <i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>
+                        ${title}
+                    </h2>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 1.5rem;">
+                    <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 1rem; border-radius: 4px; line-height: 1.6;">
+                        ${message}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-primary" onclick="this.closest('.modal-overlay').remove()">
+                        <i class="fas fa-check"></i> Understood
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Add transfer to the list
+    function addTransferToList(transfer, index = null) {
+        const transferList = document.getElementById('transferList');
+        
+        // Remove empty state if exists
+        const emptyState = transferList.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+        
+        // Create transfer item
+        const transferItem = document.createElement('div');
+        transferItem.className = 'transfer-item';
+        
+        // If index provided (loading from DB), hide items beyond first one
+        if (index !== null && index >= 1) {
+            transferItem.classList.add('hidden');
+        }
+        // If no index (new transfer), it goes to top and is always visible
+        
+        transferItem.innerHTML = `
+            <div class="transfer-patient-name">${transfer.patient_name}${transfer.is_emergency === 'yes' ? ' <span style="color: #ef4444; font-size: 0.75rem;">⚠️ EMERGENCY</span>' : ''}</div>
+            <div class="transfer-details">
+                <div class="transfer-detail-item">
+                    <i class="fas fa-tint" style="color: #ef4444;"></i>
+                    <span>${transfer.blood_type} - ${transfer.units} unit(s)</span>
+                </div>
+                <div class="transfer-detail-item">
+                    <i class="fas fa-user-md" style="color: #3b82f6;"></i>
+                    <span>Dr. ${transfer.doctor_name}</span>
+                </div>
+                <div class="transfer-detail-item">
+                    <i class="fas fa-calendar" style="color: #6b7280;"></i>
+                    <span>${transfer.transfer_date} at ${transfer.transfer_time}</span>
+                </div>
+                <div class="transfer-detail-item">
+                    <i class="fas fa-hospital" style="color: #6b7280;"></i>
+                    <span>${transfer.department || 'N/A'}</span>
+                </div>
+            </div>
+            ${transfer.notes ? `<div style="margin-top: 0.5rem; font-size: 0.75rem; color: #6b7280; font-style: italic;">Note: ${transfer.notes}</div>` : ''}
+        `;
+        
+        // Add to the top of the list
+        transferList.insertBefore(transferItem, transferList.firstChild);
+        
+        // If no index (new transfer added), update visibility of all items
+        if (index === null && !showingAllTransfers) {
+            const allItems = transferList.querySelectorAll('.transfer-item');
+            allItems.forEach((item, idx) => {
+                if (idx >= 1) {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Update "View All" button visibility
+        const totalItems = transferList.querySelectorAll('.transfer-item').length;
+        const viewAllBtn = document.getElementById('viewAllTransfersBtn');
+        if (totalItems > 1) {
+            viewAllBtn.style.display = 'flex';
+        }
+    }
+    
+    // Blood Flow Chart
+    let bloodFlowChart;
+    
+    function initializeBloodFlowChart() {
+        const ctx = document.getElementById('bloodFlowChart').getContext('2d');
+        
+        // Get data from template variables or default values
+        const totalUnitsIn = parseInt(document.getElementById('totalUnitsIn').textContent) || 0;
+        const totalUnitsOut = parseInt(document.getElementById('totalUnitsOut').textContent) || 0;
+        
+        // Create sample data for the last 7 days
+        const labels = [];
+        const unitsInData = [];
+        const unitsOutData = [];
+        
+        // Generate last 7 days
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+            
+            // Generate sample data (in real app, this would come from backend)
+            unitsInData.push(Math.floor(Math.random() * 10) + 1);
+            unitsOutData.push(Math.floor(Math.random() * 8) + 1);
+        }
+        
+        bloodFlowChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Units In',
+                    data: unitsInData,
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Units Out',
+                    data: unitsOutData,
+                    borderColor: '#dc2626',
+                    backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            color: '#6b7280'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f3f4f6',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            color: '#6b7280',
+                            stepSize: 1
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        radius: 3,
+                        hoverRadius: 5
+                    }
+                }
+            }
+        });
+    }
+    
+    // Initialize chart when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeBloodFlowChart();
+    });
+</script>
+{% endblock %}

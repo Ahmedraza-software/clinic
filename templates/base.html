@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Clinic Management System{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+    <link rel="alternate icon" href="{% static 'favicon.svg' %}">
+    
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, margin 0.3s ease-in-out;
+            z-index: 40;
+            transform: translateX(-100%);
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+        }
+        .sidebar.translate-x-0 {
+            transform: translateX(0);
+        }
+        .sidebar.-translate-x-full {
+            transform: translateX(-100%);
+        }
+        .sidebar-link {
+            transition: all 0.2s;
+        }
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+        .content-area {
+            transition: margin-left 0.3s;
+            min-height: calc(100vh - 80px);
+        }
+        
+        /* Ensure main content is properly positioned */
+        .main-content {
+            margin-left: 16rem; /* 256px sidebar width */
+            transition: margin-left 0.3s ease-in-out;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .nav-link {
+            color: #4b5563;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .nav-link.active {
+            color: #2563eb;
+            font-weight: 600;
+        }
+        .footer-link {
+            color: #9ca3af;
+            transition: color 0.2s;
+        }
+        .footer-link:hover {
+            color: #3b82f6;
+        }
+        
+        /* Glassmorphism Navigation Styles */
+        .glassmorphism-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .glassmorphism-nav:hover {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .glassmorphism-link {
+            color: #374151;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glassmorphism-link:hover {
+            color: #1f2937;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glassmorphism-link.active {
+            color: #2563eb;
+            background: rgba(37, 99, 235, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            font-weight: 600;
+        }
+        
+        .glassmorphism-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.8), rgba(59, 130, 246, 0.8));
+            color: white;
+            font-weight: 600;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+        
+        .glassmorphism-btn:hover {
+            background: linear-gradient(135deg, rgba(29, 78, 216, 0.9), rgba(37, 99, 235, 0.9));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+        
+        .glassmorphism-mobile-btn {
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.75rem;
+            color: #374151;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .glassmorphism-mobile-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        
+        .glassmorphism-mobile-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #374151;
+            font-weight: 500;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .glassmorphism-mobile-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: #1f2937;
+            transform: translateX(4px);
+        }
+        
+        .glassmorphism-mobile-btn-primary {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.8), rgba(59, 130, 246, 0.8));
+            color: white;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .glassmorphism-mobile-btn-primary:hover {
+            background: linear-gradient(135deg, rgba(29, 78, 216, 0.9), rgba(37, 99, 235, 0.9));
+            transform: translateY(-1px);
+        }
+        
+        .glassmorphism-mobile-btn-secondary {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: #2563eb;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .glassmorphism-mobile-btn-secondary:hover {
+            background: rgba(37, 99, 235, 0.1);
+            transform: translateY(-1px);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="flex flex-col min-h-screen bg-gray-50">
+    {% if user.is_authenticated %}
+        <!-- Authenticated User Layout -->
+        <div class="flex h-screen bg-gray-50">
+            <!-- Sidebar -->
+            <div id="sidebar" class="sidebar bg-blue-800 text-white w-64 flex-shrink-0 flex flex-col h-screen fixed transition-all duration-300 ease-in-out">
+                <!-- Logo and Toggle -->
+                <div class="p-4 border-b border-blue-700 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <i class="fas fa-hospital text-2xl mr-2"></i>
+                        <span class="text-xl font-bold">ClinicMS</span>
+                    </div>
+                </div>
+
+                <!-- User Info -->
+                <div class="p-4 border-b border-blue-700">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium" id="sidebar-user-fullname">
+                                {{ user.get_full_name|default:user.username }}
+                            </p>
+                            <p class="text-xs text-blue-200">
+                                {{ user.get_user_type_display|default:"User" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex-1 overflow-y-auto">
+                    <div class="p-2">
+                        <!-- Main Menu -->
+                        <div class="mb-1">
+                            <a href="{% url 'dashboard' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'dashboard' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-home w-5 mr-3 text-center"></i>
+                                Dashboard
+                            </a>
+                        </div>
+
+                        <!-- Appointments -->
+                        <div class="mb-1">
+                            <a href="{% url 'appointments:list' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'appointments' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-calendar-alt w-5 mr-3 text-center"></i>
+                                Appointments
+                            </a>
+                        </div>
+
+                        <!-- Patients -->
+                        <div class="mb-1">
+                            <div class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 cursor-pointer" onclick="togglePatientMenu()">
+                                <i class="fas fa-users w-5 mr-3 text-center"></i>
+                                Patients
+                                <i class="fas fa-chevron-down ml-auto text-xs" id="patientMenuIcon"></i>
+                            </div>
+                            <div id="patientMenu" class="ml-8 mt-1 space-y-1 hidden">
+                                <a href="{% url 'patients:list' %}" class="sidebar-link flex items-center px-3 py-2 text-sm rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'patients' %}bg-blue-700{% endif %}">
+                                    <i class="fas fa-list w-4 mr-2 text-center"></i>
+                                    Patient List
+                                </a>
+                                <a href="{% url 'patients:add' %}" class="sidebar-link flex items-center px-3 py-2 text-sm rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'add_patient' %}bg-blue-700{% endif %}">
+                                    <i class="fas fa-user-plus w-4 mr-2 text-center"></i>
+                                    Add Patient
+                                </a>
+                                <a href="{% url 'patients:import_patients_csv' %}" class="sidebar-link flex items-center px-3 py-2 text-sm rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'import_patients' %}bg-blue-700{% endif %}">
+                                    <i class="fas fa-file-import w-4 mr-2 text-center"></i>
+                                    Import CSV
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Medical Records -->
+                        <div class="mb-1">
+                            <a href="{% url 'emr:patient_selection' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'medical_records' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-file-medical w-5 mr-3 text-center"></i>
+                                Patient Medical History
+                            </a>
+                        </div>
+
+                        <!-- Doctors -->
+                        {% if user.user_type == 'admin' %}
+                        <div class="mb-1">
+                            <a href="{% url 'doctors:list' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'doctors' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-user-md w-5 mr-3 text-center"></i>
+                                Doctors
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <!-- Blood Bank -->
+                        <div class="mb-1">
+                            <a href="{% url 'blood_bank:dashboard' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'blood_bank' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-tint w-5 mr-3 text-center"></i>
+                                Blood Bank
+                            </a>
+                        </div>
+
+                        <!-- Inventory -->
+                        <div class="mb-1">
+                            <a href="{% url 'inventory:dashboard' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'inventory' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-boxes w-5 mr-3 text-center"></i>
+                                Inventory
+                            </a>
+                        </div>
+
+                        <!-- Operation Theater -->
+                        <div class="mb-1">
+                            <a href="{% url 'operation_theater:dashboard' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'operation_theater' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-procedures w-5 mr-3 text-center"></i>
+                                Operation Theater
+                            </a>
+                        </div>
+
+                        <!-- Billing -->
+                        <div class="mb-1">
+                            <a href="{% url 'patient_bills' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'billing' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-file-invoice-dollar w-5 mr-3 text-center"></i>
+                                Billing
+                            </a>
+                        </div>
+
+                        <!-- Finance/Expenses -->
+                        <div class="mb-1">
+                            <a href="{% url 'expenses' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'finance' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-chart-line w-5 mr-3 text-center"></i>
+                                Finance
+                            </a>
+                        </div>
+
+                        
+
+                        <!-- Complaints & Reviews -->
+                        <div class="mb-1">
+                            <a href="{% url 'complaints_reviews:list' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 {% if active_page == 'complaints' %}bg-blue-700{% endif %}">
+                                <i class="fas fa-comment-alt w-5 mr-3 text-center"></i>
+                                Complaints & Reviews
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Logout -->
+                <div class="p-4 border-t border-blue-700">
+                    <a href="{% url 'logout' %}" class="flex items-center text-sm font-medium text-blue-200 hover:text-white">
+                        <i class="fas fa-sign-out-alt w-5 mr-2"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+            
+
+            <!-- Main Content Area for Authenticated Users -->
+            <div class="flex-1 flex flex-col main-content">
+                <!-- Top Bar -->
+                <header class="bg-white shadow-sm">
+                    <div class="px-6 py-3 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <button id="mobileMenuToggle" class="text-gray-500 hover:text-gray-700 focus:outline-none mr-4 md:hidden">
+                                <i class="fas fa-bars text-xl"></i>
+                            </button>
+                            <div class="text-xl font-bold text-gray-700 opacity-50 mr-2 md:mr-4">
+                                <span id="time-greeting">Good morning</span>, <span id="topbar-user-fullname">{{ user.get_full_name|default:user.username }}</span>
+                            </div>
+                            <h1 class="text-lg font-semibold text-gray-900">
+                                {% block page_title %}{% endblock %}
+                            </h1>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <a href="{% url 'profile' %}" class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none">
+                                <i class="fas fa-user-circle text-lg text-blue-600"></i>
+                            </a>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Page Content -->
+                <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="mb-4 p-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-3"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium">{{ message }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <!-- Content Block for Authenticated Users -->
+                    {% block content %}
+                    {% endblock %}
+                </main>
+            </div>
+        </div>
+        
+        <!-- Edit Profile Modal -->
+        <div class="fixed inset-0 z-50 hidden" id="editProfileModal" aria-hidden="true">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <div class="fixed inset-0 bg-gray-900 bg-opacity-50" id="editProfileBackdrop"></div>
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md z-10">
+                    <div class="px-6 py-4 border-b">
+                        <h3 class="text-lg font-semibold text-gray-800">Edit Profile</h3>
+                    </div>
+                    <form id="editProfileForm" class="px-6 py-4">
+                        {% csrf_token %}
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" for="ep_first_name">First name</label>
+                                <input type="text" id="ep_first_name" name="first_name" class="mt-1 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="{{ user.first_name }}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" for="ep_last_name">Last name</label>
+                                <input type="text" id="ep_last_name" name="last_name" class="mt-1 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="{{ user.last_name }}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700" for="ep_email">Email</label>
+                                <input type="email" id="ep_email" name="email" required class="mt-1 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" value="{{ user.email }}">
+                            </div>
+                            <p class="text-sm text-red-600 hidden" id="ep_error"></p>
+                            <p class="text-sm text-green-600 hidden" id="ep_success"></p>
+                        </div>
+                        <div class="mt-6 flex justify-end gap-2">
+                            <button type="button" id="ep_cancel" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
+                            <button type="submit" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Non-Authenticated User Layout -->
+        <!-- Glassmorphism Navigation -->
+        <header class="relative w-full max-w-5xl mx-auto px-4 pt-12 pb-1">
+            <nav class="backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-1">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-plus text-white text-sm"></i>
+                            </div>
+                            <span class="text-xl font-bold text-gray-800">Healis</span>
+                        </div>
+                        <div class="hidden md:ml-10 md:flex md:space-x-6">
+                            <a href="/" class="glassmorphism-link {% if request.path == '/' %}active{% endif %}">
+                                Home
+                            </a>
+                            <a href="/about" class="glassmorphism-link {% if request.path == '/about/' %}active{% endif %}">
+                                About us
+                            </a>
+                            <a href="/services" class="glassmorphism-link {% if request.path == '/services/' %}active{% endif %}">
+                                Services
+                            </a>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex md:items-center space-x-3">
+                        <a href="{% url 'login' %}" class="glassmorphism-link">
+                            Sign In
+                        </a>
+                        <a href="{% url 'register' %}" class="glassmorphism-btn">
+                            Get Started
+                        </a>
+                    </div>
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden">
+                        <button type="button" class="glassmorphism-mobile-btn" id="mobile-menu-button">
+                            <span class="sr-only">Open main menu</span>
+                            <i class="fas fa-bars text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+            <!-- Mobile menu, show/hide based on menu state -->
+            <div class="md:hidden hidden mt-2" id="mobile-menu">
+                <div class="backdrop-blur-sm border border-white/20 rounded-2xl p-4">
+                    <div class="space-y-2">
+                        <a href="/" class="glassmorphism-mobile-link">Home</a>
+                        <a href="/about" class="glassmorphism-mobile-link">About Us</a>
+                        <a href="/services" class="glassmorphism-mobile-link">Services</a>
+                        <a href="/contact" class="glassmorphism-mobile-link">Contact</a>
+                        <div class="border-t border-white/20 pt-3 mt-3">
+                            <div class="space-y-2">
+                                <a href="{% url 'login' %}" class="glassmorphism-mobile-btn-primary">Sign In</a>
+                                <p class="text-center text-sm text-gray-600">Don't have an account?</p>
+                                <a href="{% url 'register' %}" class="glassmorphism-mobile-btn-secondary">Create Account</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="flex-1 bg-white">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mx-4 mt-4 p-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-3"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium">{{ message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
+    {% block extra_js %}{% endblock %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            
+            
+            let isSidebarOpen = !sidebar.classList.contains('-translate-x-full');
+            let isMobile = window.innerWidth < 768;
+            
+            // Mobile menu toggle
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            // Sidebar functionality for authenticated users
+            if (sidebar && sidebarToggle) {
+                const mainContent = document.querySelector('.main-content');
+
+                function updateNavBars() {
+                    const isDesktop = window.innerWidth >= 768;
+                    if (isSidebarOpen) {
+                        sidebar.classList.remove('-translate-x-full');
+                        sidebar.classList.add('translate-x-0');
+                        if (mainContent) {
+                            mainContent.style.marginLeft = isDesktop ? '16rem' : '0';
+                        }
+                    } else {
+                        sidebar.classList.remove('translate-x-0');
+                        sidebar.classList.add('-translate-x-full');
+                        if (mainContent) {
+                            mainContent.style.marginLeft = '0';
+                        }
+                    }
+                }
+
+                function toggleSidebar() {
+                    isSidebarOpen = !isSidebarOpen;
+                    updateNavBars();
+                }
+                
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', toggleSidebar);
+                }
+                
+                
+                if (mobileMenuToggle) {
+                    mobileMenuToggle.addEventListener('click', toggleSidebar);
+                }
+                
+                // Handle window resize
+                window.addEventListener('resize', function() {
+                    const newIsMobile = window.innerWidth < 768;
+                    if (newIsMobile !== isMobile) {
+                        isMobile = newIsMobile;
+                    }
+                    updateNavBars();
+                });
+
+                // Initialize visibility state
+                updateNavBars();
+            }
+
+            // Time-based greeting
+            function updateTimeBasedGreeting() {
+                const greetingEl = document.getElementById('time-greeting');
+                if (!greetingEl) return;
+                
+                const now = new Date();
+                const hour = now.getHours();
+                
+                let greeting;
+                if (hour >= 5 && hour < 12) {
+                    greeting = 'Good morning';
+                } else if (hour >= 12 && hour < 17) {
+                    greeting = 'Good afternoon';
+                } else if (hour >= 17 && hour < 21) {
+                    greeting = 'Good evening';
+                } else {
+                    greeting = 'Good night';
+                }
+                
+                greetingEl.textContent = greeting;
+            }
+            
+            // Update greeting immediately and then every minute
+            updateTimeBasedGreeting();
+            setInterval(updateTimeBasedGreeting, 60000);
+
+            
+            // Edit Profile modal handlers
+            const editProfileModal = document.getElementById('editProfileModal');
+            const editProfileBackdrop = document.getElementById('editProfileBackdrop');
+            const editProfileForm = document.getElementById('editProfileForm');
+            const epCancel = document.getElementById('ep_cancel');
+            const epError = document.getElementById('ep_error');
+            const epSuccess = document.getElementById('ep_success');
+
+            function openEditProfileModal() {
+                editProfileModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                // Prefill fields from current DOM values
+                const fullNameEl = document.getElementById('topbar-user-fullname');
+                // Fields already have defaults from template; leave as is
+            }
+            // Expose globally for inline fallback
+            window.openEditProfileProfileModal = openEditProfileModal;
+
+            function closeEditProfileModal() {
+                editProfileModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                if (epError) { epError.classList.add('hidden'); epError.textContent = ''; }
+                if (epSuccess) { epSuccess.classList.add('hidden'); epSuccess.textContent = ''; }
+            }
+
+            // Attach to all edit profile triggers (dropdown and profile page button)
+            document.querySelectorAll('#openProfileEditFromUser, .openProfileEditFromUser').forEach((el) => {
+                el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+                    openEditProfileModal();
+                });
+            });
+            if (editProfileBackdrop) {
+                editProfileBackdrop.addEventListener('click', closeEditProfileModal);
+            }
+            if (epCancel) {
+                epCancel.addEventListener('click', closeEditProfileModal);
+            }
+
+            if (editProfileForm) {
+                editProfileForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    epError.classList.add('hidden');
+                    epSuccess.classList.add('hidden');
+                    const formData = new FormData(editProfileForm);
+                    const payload = {
+                        first_name: formData.get('first_name') || '',
+                        last_name: formData.get('last_name') || '',
+                        email: formData.get('email') || ''
+                    };
+                    try {
+                        const csrfToken = editProfileForm.querySelector('[name=csrfmiddlewaretoken]')?.value;
+                        const resp = await fetch('/accounts/profile/update-basic/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrfToken || ''
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await resp.json();
+                        if (!result.success) {
+                            epError.textContent = result.error || 'Failed to update profile';
+                            epError.classList.remove('hidden');
+                            return;
+                        }
+                        // Update DOM names
+                        const newFull = (result.data?.full_name || '').trim();
+                        if (newFull) {
+                            const topName = document.getElementById('topbar-user-fullname');
+                            if (topName) topName.textContent = newFull;
+                            const sideName = document.getElementById('sidebar-user-fullname');
+                            if (sideName) sideName.textContent = newFull;
+                        }
+                        epSuccess.textContent = 'Profile updated successfully';
+                        epSuccess.classList.remove('hidden');
+                        setTimeout(() => { closeEditProfileModal(); }, 600);
+                    } catch (err) {
+                        epError.textContent = 'Error: ' + err.message;
+                        epError.classList.remove('hidden');
+                    }
+                });
+            }
+        });
+
+        // Toggle Patient Menu
+        function togglePatientMenu() {
+            const menu = document.getElementById('patientMenu');
+            const icon = document.getElementById('patientMenuIcon');
+            
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                menu.classList.add('hidden');
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+    </script>
+</body>
+</html>

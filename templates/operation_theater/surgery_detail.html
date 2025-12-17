@@ -1,0 +1,1203 @@
+{% extends 'operation_theater/base_ot.html' %}
+{% load humanize %}
+
+{% block page_title %}{{ surgery }}{% endblock %}
+
+{% block page_actions %}
+    <div class="btn-group">
+        <a href="{% url 'operation_theater:surgery_edit' surgery.pk %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-edit"></i>
+        </a>
+        <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" 
+                data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="#" onclick="alert('Update status functionality would be implemented here')">
+                    <i class="fas fa-exchange-alt me-2"></i>Update Status
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item text-danger" href="#" onclick="alert('Delete functionality would be implemented here')">
+                    <i class="fas fa-trash-alt me-2"></i>Delete
+                </a>
+            </li>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block content %}
+<style>
+  /* Compact Design System */
+  .compact-container {
+    max-width: 1000px;
+    margin: 0.5rem auto;
+    padding: 0.5rem;
+  }
+  
+  .compact-header {
+    background: linear-gradient(135deg, #1e293b, #334155);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .compact-header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  .compact-header p {
+    font-size: 0.75rem;
+    margin: 0;
+    opacity: 0.8;
+  }
+  
+  .status-badge {
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .badge-scheduled { background: #3b82f6; color: white; }
+  .badge-in-progress { background: #f59e0b; color: white; }
+  .badge-completed { background: #10b981; color: white; }
+  .badge-cancelled { background: #ef4444; color: white; }
+  
+  .compact-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .compact-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.375rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  .compact-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  
+  .compact-title i {
+    color: #3b82f6;
+    font-size: 0.75rem;
+  }
+  
+  .compact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .compact-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  
+  .compact-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  
+  .compact-value {
+    font-size: 0.75rem;
+    color: #1e293b;
+    font-weight: 500;
+  }
+  
+  .compact-value i {
+    color: #9ca3af;
+    margin-right: 0.1875rem;
+    font-size: 0.625rem;
+  }
+  
+  .patient-avatar-small {
+    width: 36px;
+    height: 36px;
+    border-radius: 0.1875rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-right: 0.75rem;
+  }
+  
+  .compact-list-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.1875rem;
+    padding: 0.5rem;
+    margin-bottom: 0.375rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .compact-list-item:hover {
+    background: #f3f4f6;
+  }
+  
+  .compact-member-info, .compact-consumable-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .compact-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 0.1875rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.625rem;
+  }
+  
+  .compact-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 0.1875rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.625rem;
+  }
+  
+  .compact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.0625rem;
+  }
+  
+  .compact-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.75rem;
+  }
+  
+  .compact-role {
+    font-size: 0.625rem;
+    color: #6b7280;
+  }
+  
+  .compact-actions {
+    display: flex;
+    gap: 0.1875rem;
+  }
+  
+  .compact-btn {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: #6b7280;
+    padding: 0.1875rem 0.25rem;
+    border-radius: 0.125rem;
+    font-size: 0.625rem;
+    transition: all 0.2s ease;
+  }
+  
+  .compact-btn:hover {
+    background: #f3f4f6;
+    color: #1e293b;
+  }
+  
+  .compact-btn.delete:hover {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #dc2626;
+  }
+  
+  .compact-timeline {
+    position: relative;
+    padding-left: 1rem;
+  }
+  
+  .compact-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.375rem;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #d1d5db;
+  }
+  
+  .compact-timeline-item {
+    position: relative;
+    margin-bottom: 0.75rem;
+    padding-left: 0.5rem;
+  }
+  
+  .compact-timeline-marker {
+    position: absolute;
+    left: -0.75rem;
+    top: 0;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 0.1875rem;
+    background: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.375rem;
+  }
+  
+  .compact-timeline-content {
+    background: #f9fafb;
+    border-radius: 0.1875rem;
+    padding: 0.375rem;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .compact-timeline-time {
+    font-size: 0.625rem;
+    color: #6b7280;
+    margin-bottom: 0.0625rem;
+  }
+  
+  .compact-timeline-title {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.75rem;
+    margin-bottom: 0.1875rem;
+  }
+  
+  .compact-timeline-description {
+    font-size: 0.625rem;
+    color: #4b5563;
+  }
+  
+  .compact-empty {
+    text-align: center;
+    padding: 1rem;
+    color: #6b7280;
+  }
+  
+  .compact-empty i {
+    font-size: 1.5rem;
+    margin-bottom: 0.375rem;
+    opacity: 0.3;
+  }
+  
+  .compact-empty p {
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .compact-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.375rem;
+  }
+  
+  .compact-quick-action {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.1875rem;
+    padding: 0.375rem;
+    text-decoration: none;
+    color: #4b5563;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.625rem;
+  }
+  
+  .compact-quick-action:hover {
+    background: white;
+    border-color: #3b82f6;
+    color: #1e293b;
+  }
+  
+  .compact-quick-action i {
+    font-size: 0.75rem;
+    color: #3b82f6;
+  }
+  
+  .compact-footer {
+    background: #f9fafb;
+    border-radius: 0.1875rem;
+    padding: 0.375rem;
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.625rem;
+    color: #6b7280;
+  }
+  
+  .compact-btn-primary {
+    background: #3b82f6;
+    border: none;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.1875rem;
+    font-size: 0.625rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .compact-btn-primary:hover {
+    background: #2563eb;
+  }
+  
+  .compact-edit-btn {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    color: #4b5563;
+    padding: 0.1875rem 0.375rem;
+    border-radius: 0.125rem;
+    font-size: 0.625rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .compact-edit-btn:hover {
+    background: #e5e7eb;
+    color: #1e293b;
+  }
+  
+  /* Surgical Team Specific Styles */
+  .team-add-section {
+    background: #f8fafc;
+    border-radius: 0.1875rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .team-form-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .team-select {
+    flex: 1;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.1875rem;
+    font-size: 0.75rem;
+    background: white;
+    color: #374151;
+    transition: all 0.2s ease;
+  }
+  
+  .team-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+  
+  .team-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    border-radius: 0.1875rem;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  
+  .team-add-btn:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  }
+  
+  .team-add-btn i {
+    font-size: 0.625rem;
+  }
+  
+  .team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .team-member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.1875rem;
+    padding: 0.625rem;
+    transition: all 0.2s ease;
+  }
+  
+  .team-member-item:hover {
+    background: white;
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  }
+  
+  .team-member-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .team-member-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 0.1875rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+  
+  .team-member-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  
+  .team-member-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.875rem;
+  }
+  
+  .team-member-role {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+  
+  .primary-star {
+    color: #f59e0b !important;
+    font-size: 0.625rem;
+  }
+  
+  .team-member-actions {
+    display: flex;
+    gap: 0.25rem;
+  }
+  
+  .team-action-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.125rem;
+    color: #6b7280;
+    font-size: 0.625rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .team-action-btn:hover {
+    background: #f3f4f6;
+    color: #1e293b;
+  }
+  
+  .team-action-btn.delete:hover {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #dc2626;
+  }
+  
+  .team-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #6b7280;
+  }
+  
+  .empty-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.3;
+  }
+  
+  .empty-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  
+  /* Custom Confirmation Modal */
+  .confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .confirm-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .confirm-modal {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+  }
+  
+  .confirm-overlay.active .confirm-modal {
+    transform: scale(1);
+  }
+  
+  .confirm-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .confirm-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+  }
+  
+  .confirm-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+  
+  .confirm-message {
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+  
+  .confirm-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+  
+  .confirm-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+  }
+  
+  .confirm-btn-cancel {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+  
+  .confirm-btn-cancel:hover {
+    background: #e5e7eb;
+  }
+  
+  .confirm-btn-delete {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+  }
+  
+  .confirm-btn-delete:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+  }
+  
+  /* Notes Textarea Styling */
+  .notes-textarea {
+    border: 2px solid #d4e4d4 !important;
+    border-radius: 0.375rem !important;
+    background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%) !important;
+    color: #5d4e37 !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.6 !important;
+    padding: 1rem !important;
+    resize: vertical;
+    min-height: 120px;
+    width: 100% !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+  }
+  
+  .notes-textarea::placeholder {
+    color: #9ca3af !important;
+    font-style: italic;
+    opacity: 0.8;
+  }
+  
+  .notes-textarea:focus {
+    outline: none !important;
+    border-color: #86efac !important;
+    box-shadow: 0 0 0 3px rgba(134, 239, 172, 0.1) !important;
+    background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%) !important;
+  }
+  
+  /* Notes Display Styling (when closed) */
+  .notes-display {
+    border: 2px solid #d4e4d4 !important;
+    border-radius: 0.375rem !important;
+    background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%) !important;
+    color: #5d4e37 !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.6 !important;
+    padding: 0.75rem !important;
+    margin: 0.25rem 0 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    white-space: pre-wrap;
+    min-height: 60px;
+    position: relative;
+  }
+  
+  .notes-display::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+  }
+  
+  .notes-empty {
+    border: 2px solid #d4e4d4 !important;
+    border-radius: 0.375rem !important;
+    background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%) !important;
+    padding: 1.5rem 1rem !important;
+    margin: 0.25rem 0 !important;
+    text-align: center;
+    color: #9ca3af !important;
+    font-style: italic;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+</style>
+
+<div class="compact-container">
+  <!-- Header -->
+  <div class="compact-header">
+    <div>
+      <h1>Surgery Details</h1>
+      <p>Created {{ surgery.created_at|timesince }} ago</p>
+    </div>
+    <span class="status-badge badge-{{ surgery.get_status_badge }}">
+      {{ surgery.get_status_display }}
+    </span>
+  </div>
+
+  <!-- Patient & Surgery Info -->
+  <div class="compact-card">
+    <div class="compact-card-header">
+      <h3 class="compact-title">
+        <i class="fas fa-user"></i>
+        Patient & Surgery Information
+      </h3>
+      <button class="compact-edit-btn" onclick="editSurgeryInfo()">
+        <i class="fas fa-edit me-1"></i> Edit
+      </button>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="d-flex align-items-center mb-3">
+          <div class="patient-avatar-small">
+            {{ surgery.patient.user.get_initials }}
+          </div>
+          <div>
+            <div class="compact-name">{{ surgery.patient.user.get_full_name }}</div>
+            <div class="compact-role">MRN: {{ surgery.patient.mrn }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <div class="compact-grid">
+          <div class="compact-item">
+            <div class="compact-label">Gender & Age</div>
+            <div class="compact-value">
+              <i class="fas fa-venus-mars"></i>
+              {{ surgery.patient.get_gender_display }}, {{ surgery.patient.get_age }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">Phone</div>
+            <div class="compact-value">
+              <i class="fas fa-phone"></i>
+              {{ surgery.patient.phone_number|default:"N/A" }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">Email</div>
+            <div class="compact-value">
+              <i class="fas fa-envelope"></i>
+              {{ surgery.patient.user.email }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">Date of Birth</div>
+            <div class="compact-value">
+              <i class="fas fa-calendar-alt"></i>
+              {{ surgery.patient.date_of_birth|date:"M d, Y" }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">MRN</div>
+            <div class="compact-value">
+              <i class="fas fa-id-card"></i>
+              {{ surgery.patient.mrn }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">Full Name</div>
+            <div class="compact-value">
+              <i class="fas fa-user"></i>
+              {{ surgery.patient.user.get_full_name }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="compact-grid">
+          <div class="compact-item">
+            <div class="compact-label">Surgery Type</div>
+            <div class="compact-value">
+              <i class="fas fa-notes-medical"></i>
+              {{ surgery.surgery_type.name }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">Operation Theater</div>
+            <div class="compact-value">
+              <i class="fas fa-hospital"></i>
+              {{ surgery.operation_theater.name }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">Scheduled Date</div>
+            <div class="compact-value">
+              <i class="fas fa-calendar"></i>
+              {{ surgery.scheduled_date|date:"M d, Y" }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">Time</div>
+            <div class="compact-value">
+              <i class="fas fa-clock"></i>
+              {{ surgery.start_time|time:"H:i" }} - {{ surgery.end_time|time:"H:i" }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">Duration</div>
+            <div class="compact-value">
+              <i class="fas fa-hourglass-half"></i>
+              {{ surgery.duration|default:"N/A" }}
+            </div>
+          </div>
+          <div class="compact-item">
+            <div class="compact-label">Status</div>
+            <div class="compact-value">
+              <span class="status-badge badge-{{ surgery.get_status_badge }}">
+                {{ surgery.get_status_display }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% if surgery.notes %}
+    <div class="mt-2">
+      <div class="compact-label">Notes</div>
+      <div class="compact-value" style="background: #f9fafb; padding: 0.375rem; border-radius: 0.1875rem;">
+        {{ surgery.notes|linebreaks }}
+      </div>
+    </div>
+    {% endif %}
+    <div class="compact-footer">
+      <div>
+        <i class="far fa-user me-1"></i>
+        {{ surgery.created_by.get_full_name|default:"System" }} • {{ surgery.created_at|date:"M d, Y H:i" }}
+      </div>
+      <div>
+        <i class="far fa-edit me-1"></i>
+        {{ surgery.updated_at|timesince }} ago
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+      <!-- Surgical Team -->
+      <div class="compact-card">
+        <div class="compact-card-header">
+          <h3 class="compact-title">
+            <i class="fas fa-users-medical"></i>
+            Surgical Team
+          </h3>
+        </div>
+        
+        <!-- Add Team Member Form -->
+        <div class="team-add-section">
+          <form method="post" action="{% url 'operation_theater:add_team_member' surgery.pk %}">
+            {% csrf_token %}
+            <div class="team-form-row">
+              <select class="team-select" name="doctor" required>
+                <option value="" selected disabled>Select doctor</option>
+                {% for doctor in available_doctors %}
+                  <option value="{{ doctor.id }}">
+                    "Dr. {{ doctor.user.get_full_name }}"
+                  </option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="team-add-btn">
+                <i class="fas fa-plus"></i>
+                <span>Add</span>
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        {% if surgery.team_members.exists %}
+          <div class="team-list">
+            {% for member in surgery.team_members.all %}
+            <div class="team-member-item">
+              <div class="team-member-info">
+                <div class="team-member-avatar">
+                  {{ member.doctor.user.get_initials }}
+                </div>
+                <div class="team-member-details">
+                  <div class="team-member-name">Dr. {{ member.doctor.user.get_full_name }}</div>
+                  <div class="team-member-role">{{ member.get_role_display }}{% if member.is_primary %} <i class="fas fa-star primary-star"></i>{% endif %}</div>
+                </div>
+              </div>
+              <div class="team-member-actions">
+                <button class="team-action-btn delete" onclick="showRemoveConfirm('{{ member.id }}', 'Dr. {{ member.doctor.user.get_full_name }}')">
+                  <i class="fas fa-user-minus"></i>
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="team-empty">
+            <div class="empty-icon">
+              <i class="fas fa-users-slash"></i>
+            </div>
+            <div class="empty-text">No team members added yet</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Consumables -->
+      <div class="compact-card">
+        <div class="compact-card-header">
+          <h3 class="compact-title">
+            <i class="fas fa-boxes"></i>
+            Consumables Used
+          </h3>
+          <button class="compact-btn-primary" onclick="alert('Add consumable functionality would be implemented here')">
+            <i class="fas fa-plus me-1"></i> Add
+          </button>
+        </div>
+        {% if surgery.consumables.exists %}
+          {% for item in surgery.consumables.all %}
+          <div class="compact-list-item">
+            <div class="compact-consumable-info">
+              <div class="compact-icon">
+                <i class="fas fa-box"></i>
+              </div>
+              <div class="compact-details">
+                <div class="compact-name">{{ item.name }}</div>
+                <div class="compact-role">{{ item.quantity }} {{ item.unit }}</div>
+              </div>
+            </div>
+            <div class="compact-actions">
+              <button class="compact-btn" onclick="editConsumable('{{ item.id }}')">
+                <i class="fas fa-edit"></i>
+              </button>
+              <a href="{% url 'operation_theater:remove_consumable' item.id %}" class="compact-btn delete" onclick="return confirm('Remove?');">
+                <i class="fas fa-trash"></i>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="compact-empty">
+            <i class="fas fa-box-open"></i>
+            <p>No consumables recorded</p>
+            <button class="compact-btn-primary" onclick="alert('Add consumable functionality would be implemented here')">
+              <i class="fas fa-plus me-1"></i> Add Consumable
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+      <!-- Timeline -->
+      <div class="compact-card">
+        <div class="compact-card-header">
+          <h3 class="compact-title">
+            <i class="fas fa-history"></i>
+            Timeline
+          </h3>
+        </div>
+        <div class="compact-timeline">
+          <div class="compact-timeline-item">
+            <div class="compact-timeline-marker">
+              <i class="fas fa-calendar-plus" style="font-size: 0.375rem;"></i>
+            </div>
+            <div class="compact-timeline-content">
+              <div class="compact-timeline-time">{{ surgery.created_at|date:"M d, Y H:i" }}</div>
+              <div class="compact-timeline-title">Surgery Scheduled</div>
+              <div class="compact-timeline-description">
+                {{ surgery.created_by.get_full_name|default:"System" }}
+              </div>
+            </div>
+          </div>
+          
+          {% if surgery.status != 'completed' %}
+            <div class="compact-timeline-item">
+              <div class="compact-timeline-marker" style="background: #9ca3af;">
+                <i class="fas fa-ellipsis-h" style="font-size: 0.375rem;"></i>
+              </div>
+              <div class="compact-timeline-content">
+                <div class="compact-timeline-title">Next Steps</div>
+                <div class="compact-timeline-description">
+                  {% if surgery.status == 'scheduled' %}
+                    Begins at {{ surgery.start_time|time:"H:i" }}
+                  {% elif surgery.status == 'in_progress' %}
+                    Currently in progress
+                  {% elif surgery.status == 'postponed' %}
+                    Postponed - update status when rescheduled
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="compact-timeline-item">
+              <div class="compact-timeline-marker" style="background: #10b981;">
+                <i class="fas fa-check" style="font-size: 0.375rem;"></i>
+              </div>
+              <div class="compact-timeline-content">
+                <div class="compact-timeline-time">{{ surgery.updated_at|date:"M d, Y H:i" }}</div>
+                <div class="compact-timeline-title">Completed</div>
+                <div class="compact-timeline-description">
+                  Successfully completed
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="compact-card">
+        <div class="compact-card-header">
+          <h3 class="compact-title">
+            <i class="fas fa-sticky-note"></i>
+            Notes
+          </h3>
+          {% if not surgery.notes %}
+          <button class="compact-btn-primary" onclick="showNotesForm()">
+            <i class="fas fa-plus me-1"></i> Add
+          </button>
+          {% else %}
+          <button class="compact-edit-btn" onclick="showNotesForm()">
+            <i class="fas fa-edit me-1"></i> Edit
+          </button>
+          {% endif %}
+        </div>
+        
+        <!-- Notes Form (Hidden by default) -->
+        <div id="notesForm" style="display: none;">
+          <form method="post" action="{% url 'operation_theater:update_surgery_notes' surgery.pk %}">
+            {% csrf_token %}
+            <div class="mb-2">
+              <textarea class="form-control notes-textarea" name="notes" rows="4" placeholder="Enter surgery notes..." id="notesTextarea">{{ surgery.notes|default:"" }}</textarea>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="compact-btn-primary">
+                <i class="fas fa-save me-1"></i> Save
+              </button>
+              <button type="button" class="compact-edit-btn" onclick="hideNotesForm()">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        {% if surgery.notes %}
+          <div id="notesDisplay" class="notes-display">
+            {{ surgery.notes|linebreaks }}
+          </div>
+        {% else %}
+          <div id="notesDisplay" class="notes-empty">
+            <i class="far fa-sticky-note"></i>
+            <p>No notes added</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div class="confirm-overlay" id="removeConfirmModal">
+  <div class="confirm-modal">
+    <div class="confirm-header">
+      <div class="confirm-icon">
+        <i class="fas fa-user-minus"></i>
+      </div>
+      <h3 class="confirm-title">Remove Team Member</h3>
+    </div>
+    <div class="confirm-message">
+      Are you sure you want to remove <strong id="removeDoctorName"></strong> from the surgical team? This action cannot be undone.
+    </div>
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-btn-cancel" onclick="hideRemoveConfirm()">
+        Cancel
+      </button>
+      <button class="confirm-btn confirm-btn-delete" onclick="confirmRemove()">
+        Remove Team Member
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentRemoveId = null;
+
+function editSurgeryInfo() {
+    window.location.href = '{% url "operation_theater:surgery_edit" surgery.pk %}';
+}
+
+function editTeamMember(memberId) {
+    alert('Edit team member ' + memberId + ' functionality would be implemented here');
+}
+
+function editConsumable(consumableId) {
+    alert('Edit consumable ' + consumableId + ' functionality would be implemented here');
+}
+
+function editNotes() {
+    showNotesForm();
+}
+
+function showNotesForm() {
+    document.getElementById('notesForm').style.display = 'block';
+    document.getElementById('notesDisplay').style.display = 'none';
+    
+    // Update button text in header
+    const headerBtn = document.querySelector('.compact-card-header button');
+    if (headerBtn) {
+        headerBtn.style.display = 'none';
+    }
+    
+    // Focus on textarea
+    document.getElementById('notesTextarea').focus();
+}
+
+function hideNotesForm() {
+    document.getElementById('notesForm').style.display = 'none';
+    document.getElementById('notesDisplay').style.display = 'block';
+    
+    // Restore button in header
+    const headerBtn = document.querySelector('.compact-card-header button');
+    if (headerBtn) {
+        headerBtn.style.display = 'flex';
+    }
+}
+
+function showRemoveConfirm(memberId, doctorName) {
+    currentRemoveId = memberId;
+    document.getElementById('removeDoctorName').textContent = doctorName;
+    document.getElementById('removeConfirmModal').classList.add('active');
+}
+
+function hideRemoveConfirm() {
+    document.getElementById('removeConfirmModal').classList.remove('active');
+    currentRemoveId = null;
+}
+
+function confirmRemove() {
+    if (currentRemoveId) {
+        window.location.href = '{% url "operation_theater:remove_team_member" 0 %}'.replace('0', currentRemoveId);
+    }
+}
+
+// Close modal when clicking overlay
+document.getElementById('removeConfirmModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideRemoveConfirm();
+    }
+});
+</script>
+{% endblock %}

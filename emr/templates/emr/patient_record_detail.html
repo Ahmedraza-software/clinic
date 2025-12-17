@@ -1,0 +1,180 @@
+{% extends 'emr/base_emr.html' %}
+{% load humanize %}
+
+{% block page_title %}{{ record.patient.user.get_full_name }} - Medical Record{% endblock %}
+{% block page_subtitle %}View and manage patient's medical information{% endblock %}
+
+{% block emr_content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Patient Information
+            </h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                Personal details and medical record.
+            </p>
+        </div>
+        {% if perms.emr.change_patientmedicalrecord %}
+        <a href="{% url 'emr:patient_record_edit' record.patient.id %}" 
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit Record
+        </a>
+        {% endif %}
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-500">
+                    Full name
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {{ record.patient.user.get_full_name }}
+                </dd>
+            </div>
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-500">
+                    Date of Birth
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {{ record.patient.date_of_birth|date:"F j, Y" }} (Age: {{ record.patient.date_of_birth|timesince }}
+                </dd>
+            </div>
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-500">
+                    Blood Type
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {% if record.blood_type %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            {{ record.blood_type }}
+                        </span>
+                    {% else %}
+                        <span class="text-gray-500">Not specified</span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-500">
+                    Allergies
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {% if record.allergies %}
+                        {{ record.allergies|linebreaksbr }}
+                    {% else %}
+                        <span class="text-gray-500">No known allergies</span>
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<!-- Medical History Section -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Medical History
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Past medical conditions, surgeries, and relevant history.
+        </p>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        {% if record.medical_history %}
+            <div class="prose max-w-none">
+                {{ record.medical_history|linebreaks }}
+            </div>
+        {% else %}
+            <p class="text-gray-500">No medical history recorded.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Current Medications Section -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Current Medications
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Medications currently prescribed to the patient.
+        </p>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        {% if record.current_medications %}
+            <div class="prose max-w-none">
+                {{ record.current_medications|linebreaks }}
+            </div>
+        {% else %}
+            <p class="text-gray-500">No current medications recorded.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Family History Section -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Family History
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Relevant family medical history.
+        </p>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        {% if record.family_history %}
+            <div class="prose max-w-none">
+                {{ record.family_history|linebreaks }}
+            </div>
+        {% else %}
+            <p class="text-gray-500">No family history recorded.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Notes Section -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Clinical Notes
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Additional notes and observations.
+        </p>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        {% if record.notes %}
+            <div class="prose max-w-none">
+                {{ record.notes|linebreaks }}
+            </div>
+        {% else %}
+            <p class="text-gray-500">No additional notes.</p>
+        {% endif %}
+    </div>
+    <div class="px-4 py-4 bg-gray-50 text-right sm:px-6">
+        <p class="text-xs text-gray-500">
+            Last updated: {{ record.updated_at|date:"F j, Y H:i" }} by {{ record.updated_by.get_full_name|default:record.updated_by.username }}
+        </p>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="mt-6 flex justify-between">
+    <a href="{% url 'emr:patient_vitals' record.patient.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        View Vital Signs
+    </a>
+    <a href="{% url 'emr:fill_form' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        New Form
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,1333 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Admin Dashboard - Clinic Management System{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Custom styles for dashboard */
+    .dashboard-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .stat-card {
+        border-left: 4px solid #4299e1;
+    }
+    .stat-card.primary {
+        border-left-color: #4299e1;
+    }
+    .stat-card.success {
+        border-left-color: #48bb78;
+    }
+    .stat-card.warning {
+        border-left-color: #ed8936;
+    }
+    .stat-card.danger {
+        border-left-color: #f56565;
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up-init { opacity: 0; transform: translateY(12px); }
+    .fade-up-in { opacity: 1; transform: translateY(0); animation: fadeUp 420ms ease forwards; }
+    .hover-lift { transition: transform 180ms ease, box-shadow 180ms ease; }
+    .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 10px 18px -8px rgba(0,0,0,.18); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh the dashboard every 30 seconds
+        const refreshInterval = 30000; // 30 seconds
+        
+        // Function to refresh the dashboard
+        function refreshDashboard() {
+            console.log('Refreshing dashboard...');
+            window.location.reload();
+        }
+        
+        // Set up the auto-refresh
+        let refreshTimer = setTimeout(refreshDashboard, refreshInterval);
+        
+        // Reset the timer on user activity
+        function resetRefreshTimer() {
+            clearTimeout(refreshTimer);
+            refreshTimer = setTimeout(refreshDashboard, refreshInterval);
+        }
+        
+        // Listen for user activity
+        document.addEventListener('mousemove', resetRefreshTimer);
+        document.addEventListener('keypress', resetRefreshTimer);
+        document.addEventListener('click', resetRefreshTimer);
+
+        // Load patients and doctors for appointment form
+        loadPatientsAndDoctors();
+
+        // Staggered animations on load
+        try {
+            const stats = document.querySelectorAll('.stat-card');
+            stats.forEach((el, i) => {
+                el.classList.add('fade-up-init','hover-lift');
+                setTimeout(() => el.classList.add('fade-up-in'), 80 * i);
+            });
+
+            const upRows = document.querySelectorAll('#upcomingAppointmentsTable tbody tr');
+            upRows.forEach((row, i) => {
+                row.classList.add('fade-up-init');
+                setTimeout(() => row.classList.add('fade-up-in'), 60 * i + 200);
+            });
+
+            const recentPatients = document.querySelectorAll('.recent-patients-list > div');
+            recentPatients.forEach((item, i) => {
+                item.classList.add('fade-up-init');
+                setTimeout(() => item.classList.add('fade-up-in'), 50 * i + 250);
+            });
+
+            const docRows = document.querySelectorAll('#doctorsTable tbody tr');
+            docRows.forEach((row, i) => {
+                row.classList.add('fade-up-init');
+                setTimeout(() => row.classList.add('fade-up-in'), 40 * i + 300);
+            });
+
+            // Doctors container fade-up
+            const doctorsSection = document.getElementById('doctorsSection');
+            if (doctorsSection) {
+                setTimeout(() => doctorsSection.classList.add('fade-up-in'), 120);
+            }
+        } catch(e) { console.debug('Animation init error', e); }
+
+        // Count-up animations for stat numbers
+        try {
+            function countUp(el, endValue, options={}){
+                if (!el) return;
+                const duration = options.duration || 1200;
+                const start = performance.now();
+                const startVal = 0;
+                const formatter = options.formatter || ((n)=>n.toLocaleString());
+                function frame(ts){
+                    const p = Math.min((ts - start)/duration, 1);
+                    const eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
+                    const val = Math.round(startVal + (endValue - startVal)*eased);
+                    el.textContent = formatter(val);
+                    if (p < 1) requestAnimationFrame(frame);
+                }
+                requestAnimationFrame(frame);
+            }
+
+            // Patients
+            const elPatients = document.getElementById('patient-count');
+            if (elPatients){
+                const target = parseInt((elPatients.textContent||'0').replace(/[^0-9]/g,'')) || 0;
+                countUp(elPatients, target);
+            }
+            // Doctors
+            const elDoctors = document.getElementById('doctor-count');
+            if (elDoctors){
+                const target = parseInt((elDoctors.textContent||'0').replace(/[^0-9]/g,'')) || 0;
+                countUp(elDoctors, target);
+            }
+            // Today's Appointments
+            const elToday = document.getElementById('today-count');
+            if (elToday){
+                const target = parseInt((elToday.textContent||'0').replace(/[^0-9]/g,'')) || 0;
+                countUp(elToday, target);
+            }
+            // Monthly Revenue (currency, keep commas)
+            const elRevenue = document.getElementById('monthly-revenue');
+            if (elRevenue){
+                const target = parseInt((elRevenue.textContent||'0').replace(/[^0-9]/g,'')) || 0;
+                countUp(elRevenue, target, { formatter: (n)=> n.toLocaleString() });
+            }
+        } catch(e){ console.debug('Count-up init error', e); }
+
+        // Function to update the patient list
+        function updatePatientList(patient) {
+            console.log('Updating patient list with:', patient);
+            const recentPatientsList = document.querySelector('.recent-patients-list');
+            const noPatientsMessage = document.querySelector('.no-patients-message');
+            
+            // If no patients message is visible, hide it
+            if (noPatientsMessage) {
+                noPatientsMessage.style.display = 'none';
+            }
+            
+            // Get the patient's initials (first letters of first and last name)
+            const firstNameInitial = patient.first_name ? patient.first_name.charAt(0).toUpperCase() : '';
+            const lastNameInitial = patient.last_name ? patient.last_name.charAt(0).toUpperCase() : '';
+            const initials = (firstNameInitial + lastNameInitial) || 'P';
+            const fullName = patient.full_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 'New Patient';
+            
+            // Create the new patient element
+            const patientHtml = `
+                <div class="flex items-center p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150" data-patient-id="${patient.id}">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                        ${initials}
+                    </div>
+                    <div class="ml-4 flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-medium text-gray-900 truncate">${fullName}</h4>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                ${patient.status || 'Active'}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate">${patient.email || ''}</p>
+                        <p class="text-xs text-gray-400 mt-1">
+                            <i class="far fa-clock mr-1"></i> ${patient.last_visit || 'Never'}
+                        </p>
+                    </div>
+                    <div class="ml-2 flex-shrink-0">
+                        <a href="/admin/accounts/user/${patient.id}/change/" 
+                           class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-xs font-medium rounded-full text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-100 transition-colors duration-150">
+                            View
+                            <i class="fas fa-chevron-right ml-1 text-xs opacity-70"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            // Add the new patient to the top of the list
+            if (recentPatientsList) {
+                // Check if we already have this patient in the list
+                const existingPatient = recentPatientsList.querySelector(`[data-patient-id="${patient.id}"]`);
+                
+                if (existingPatient) {
+                    // Update existing patient
+                    existingPatient.outerHTML = patientHtml;
+                } else {
+                    // Add new patient to the top of the list
+                    recentPatientsList.insertAdjacentHTML('afterbegin', patientHtml);
+                    
+                    // Update the patient count
+                    const patientCount = document.getElementById('patient-count');
+                    if (patientCount) {
+                        const currentCount = parseInt(patientCount.textContent.replace(/,/g, '')) || 0;
+                        patientCount.textContent = (currentCount + 1).toLocaleString();
+                    }
+                }
+            }
+        }
+    });
+
+    // Appointment form functions
+    function toggleAppointmentForm() {
+        const form = document.getElementById('appointmentForm');
+        const toggleBtn = document.getElementById('toggleBtn');
+        
+        if (form.classList.contains('hidden')) {
+            form.classList.remove('hidden');
+            toggleBtn.innerHTML = '<i class="fas fa-times mr-2"></i>Cancel';
+            toggleBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            toggleBtn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+        } else {
+            form.classList.add('hidden');
+            toggleBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>Create Appointment';
+            toggleBtn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+            toggleBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            // Reset form
+            document.getElementById('quickAppointmentForm').reset();
+        }
+    }
+
+    function loadPatientsAndDoctors() {
+        // Load patients
+        fetch('/billing/get-patients/')
+            .then(response => response.json())
+            .then(data => {
+                const patientSelect = document.getElementById('patient_id');
+                patientSelect.innerHTML = '<option value="">Select Patient</option>';
+                data.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = patient.id;
+                    option.textContent = `${patient.name} - ${patient.email}`;
+                    patientSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error loading patients:', error));
+
+        // Load doctors
+        fetch('/doctors/api/doctors/')
+            .then(response => response.json())
+            .then(data => {
+                const doctorSelect = document.getElementById('doctor_id');
+                doctorSelect.innerHTML = '<option value="">Select Doctor</option>';
+                data.forEach(doctor => {
+                    const option = document.createElement('option');
+                    option.value = doctor.id;
+                    option.textContent = `Dr. ${doctor.name} - ${doctor.specialization}`;
+                    doctorSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading doctors:', error);
+                // Fallback: populate with some default doctors if API fails
+                const doctorSelect = document.getElementById('doctor_id');
+                doctorSelect.innerHTML = `
+                    <option value="">Select Doctor</option>
+                    <option value="1">Dr. Ayesha Khan - Radiology</option>
+                    <option value="2">Dr. Omar R. Siddiqui - Cardiology</option>
+                `;
+            });
+    }
+
+    // Handle appointment form submission
+    document.getElementById('quickAppointmentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        submitBtn.disabled = true;
+        
+        fetch('/api/create-appointment/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showNotification('Appointment created successfully!', 'success');
+                // Reset form and hide it
+                this.reset();
+                toggleAppointmentForm();
+                // Refresh the page to show new appointment
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showNotification(data.message || 'Error creating appointment', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error creating appointment', 'error');
+        })
+        .finally(() => {
+            // Restore button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg ${
+            type === 'success' ? 'bg-green-500 text-white' : 
+            type === 'error' ? 'bg-red-500 text-white' : 
+            'bg-blue-500 text-white'
+        }`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+                ${message}
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    // Set today's date as minimum for appointment date
+    document.getElementById('appointment_date').min = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="content-area flex-1 flex flex-col overflow-hidden">
+    <!-- Page Content -->
+    <main class="flex-1 overflow-y-auto bg-gray-50">
+        <div class="py-4">
+            <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+                <h1 class="text-xl font-semibold text-gray-900 mb-4">Admin Dashboard</h1>
+                {% if not user.is_superuser and user.user_type != 'admin' %}
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Access Denied</h3>
+                        <div class="mt-2 max-w-xl text-sm text-gray-500">
+                            <p>You don't have permission to view the admin dashboard. Please contact the system administrator.</p>
+                            <p class="mt-2">Your user type: <span class="font-medium">{{ user.get_user_type_display }}</span></p>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+    <!-- Stats Cards -->
+    <div class="bg-white rounded-lg shadow p-4 stat-card primary">
+        <div class="flex items-center">
+            <div class="p-2 rounded-full bg-blue-100 text-blue-600">
+                <i class="fas fa-users text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-xs font-medium text-gray-500">Total Patients</p>
+                <p class="text-xl font-semibold text-gray-800"><span id="patient-count">{{ stats.patients_count|intcomma }}</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 stat-card success">
+        <div class="flex items-center">
+            <div class="p-2 rounded-full bg-green-100 text-green-600">
+                <i class="fas fa-user-md text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-xs font-medium text-gray-500">Total Doctors</p>
+                <p class="text-xl font-semibold text-gray-800"><span id="doctor-count">{{ stats.doctors_count|intcomma }}</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 stat-card warning">
+        <div class="flex items-center">
+            <div class="p-2 rounded-full bg-yellow-100 text-yellow-600">
+                <i class="fas fa-calendar-check text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-xs font-medium text-gray-500">Today's Appointments</p>
+                <p class="text-xl font-semibold text-gray-800"><span id="today-count">{{ stats.today_appointments|intcomma }}</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 stat-card danger cursor-pointer hover:shadow-lg transition-shadow duration-200" onclick="openRevenueModal()">
+        <div class="flex items-center">
+            <div class="p-2 rounded-full bg-red-100 text-red-600">
+                <i class="fas fa-money-bill-wave text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-xs font-medium text-gray-500">Monthly Revenue</p>
+                <p class="text-xl font-semibold text-gray-800">PKR <span id="monthly-revenue">{{ stats.monthly_revenue|intcomma }}</span></p>
+                <p class="text-xs text-gray-400 mt-1">
+                    <i class="fas fa-mouse-pointer mr-1"></i>
+                    Click to view details
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Appointment Creation -->
+<div class="bg-white rounded-lg shadow mb-4">
+    <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-calendar-plus text-blue-600 mr-2"></i>
+                    Quick Appointment Creation
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">Create appointments directly from the dashboard</p>
+            </div>
+            <button onclick="toggleAppointmentForm()" id="toggleBtn" class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-plus mr-2"></i>
+                Create Appointment
+            </button>
+        </div>
+    </div>
+    
+    <div id="appointmentForm" class="hidden p-4">
+        <form id="quickAppointmentForm" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Patient Selection with Search -->
+                <div>
+                    <label for="patient_search" class="block text-sm font-medium text-gray-700 mb-1">
+                        Patient <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="patient_search" name="patient_search" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                               placeholder="Type patient name to search...">
+                        <input type="hidden" id="patient_id" name="patient_id" required>
+                        
+                        <!-- Patient Dropdown -->
+                        <div id="patient_dropdown" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                            <!-- Patient results will be populated here -->
+                        </div>
+                        
+                        <!-- Add New Patient Button -->
+                        <div id="add_patient_section" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-3 hidden">
+                            <p class="text-sm text-gray-600 mb-2">No patient found. Add a new patient:</p>
+                            <button type="button" onclick="openNewPatientModal()" 
+                                    class="w-full px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Add New Patient
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Doctor Selection -->
+                <div>
+                    <label for="doctor_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        Doctor <span class="text-red-500">*</span>
+                    </label>
+                    <select id="doctor_id" name="doctor_id" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="">Select Doctor</option>
+                        <!-- Will be populated via AJAX -->
+                    </select>
+                </div>
+                
+                <!-- Date -->
+                <div>
+                    <label for="appointment_date" class="block text-sm font-medium text-gray-700 mb-1">
+                        Date <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="appointment_date" name="appointment_date" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           min="{{ today|date:'Y-m-d' }}">
+                </div>
+                
+                <!-- Time -->
+                <div>
+                    <label for="appointment_time" class="block text-sm font-medium text-gray-700 mb-1">
+                        Time <span class="text-red-500">*</span>
+                    </label>
+                    <select id="appointment_time" name="appointment_time" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="">Select Time</option>
+                        <option value="09:00">09:00 AM</option>
+                        <option value="09:30">09:30 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="10:30">10:30 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="11:30">11:30 AM</option>
+                        <option value="12:00">12:00 PM</option>
+                        <option value="14:00">02:00 PM</option>
+                        <option value="14:30">02:30 PM</option>
+                        <option value="15:00">03:00 PM</option>
+                        <option value="15:30">03:30 PM</option>
+                        <option value="16:00">04:00 PM</option>
+                        <option value="16:30">04:30 PM</option>
+                        <option value="17:00">05:00 PM</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Reason -->
+                <div>
+                    <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">
+                        Reason for Visit
+                    </label>
+                    <input type="text" id="reason" name="reason" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           placeholder="e.g., Regular checkup, Follow-up, etc.">
+                </div>
+                
+                <!-- Notes -->
+                <div>
+                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+                        Notes
+                    </label>
+                    <input type="text" id="notes" name="notes" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           placeholder="Additional notes (optional)">
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button type="button" onclick="toggleAppointmentForm()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-save mr-2"></i>
+                    Create Appointment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+    <!-- Upcoming Appointments -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="p-3 border-b border-gray-200 bg-white flex items-center justify-between">
+            <div>
+                <h3 class="text-base font-semibold text-gray-800">Upcoming Appointments</h3>
+                <p class="text-xs text-gray-500">Showing latest 2 appointments</p>
+            </div>
+            <div class="flex space-x-1">
+                <a href="{% url 'appointments:list' %}"
+                   class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+                    <i class="fas fa-list mr-1"></i>
+                    View All
+                </a>
+                <a href="{% url 'appointments:create' %}"
+                   class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                    <i class="fas fa-plus mr-1"></i>
+                    Create
+                </a>
+            </div>
+        </div>
+        <div>
+            <table id="upcomingAppointmentsTable" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for appointment in upcoming_appointments %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                        <td class="px-3 py-2">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-7 w-7 rounded-full bg-blue-50 flex items-center justify-center">
+                                    <span class="text-blue-600 font-medium text-xs">
+                                        {{ appointment.patient.user.first_name|first|upper }}{{ appointment.patient.user.last_name|first|upper }}
+                                    </span>
+                                </div>
+                                <div class="ml-2">
+                                    <div class="text-xs font-medium text-gray-900">{{ appointment.patient.user.get_full_name }}</div>
+                                    <div class="text-xs text-gray-500 truncate max-w-[120px]">{{ appointment.patient.user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-3 py-2">
+                            <div class="text-xs font-medium text-gray-900">{{ appointment.doctor.user.get_full_name }}</div>
+                            <div class="text-xs text-gray-500">
+                                {% with specs=appointment.doctor.specialization.all %}
+                                    {% if specs %}
+                                        {% for s in specs %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                    {% else %}
+                                        General
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </td>
+                        <td class="px-3 py-2">
+                            <div class="text-xs text-gray-900">{{ appointment.appointment_date|date:"M d, Y" }}</div>
+                            <div class="text-xs text-gray-500">{{ appointment.appointment_time|time:"g:i A" }}</div>
+                        </td>
+                        <td class="px-3 py-2">
+                            {% if appointment.status == 'scheduled' %}
+                                <span class="px-2 py-0.5 inline-flex items-center text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                                    <span class="w-1 h-1 rounded-full bg-blue-500 mr-1"></span>
+                                    Scheduled
+                                </span>
+                            {% elif appointment.status == 'completed' %}
+                                <span class="px-2 py-0.5 inline-flex items-center text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                    <span class="w-1 h-1 rounded-full bg-green-500 mr-1"></span>
+                                    Completed
+                                </span>
+                            {% elif appointment.status == 'cancelled' %}
+                                <span class="px-2 py-0.5 inline-flex items-center text-xs font-medium rounded-full bg-red-100 text-red-800">
+                                    <span class="w-1 h-1 rounded-full bg-red-500 mr-1"></span>
+                                    Cancelled
+                                </span>
+                            {% else %}
+                                <span class="px-2 py-0.5 inline-flex items-center text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                                    <span class="w-1 h-1 rounded-full bg-yellow-500 mr-1"></span>
+                                    Pending
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">
+                            No upcoming appointments.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Patients -->
+    <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col h-[350px]">
+        <div class="p-3 border-b border-gray-200 bg-white sticky top-0 z-10">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-semibold text-gray-800">Recent Patients</h3>
+                    <p class="text-xs text-gray-500 mt-1">Showing latest 2 patients</p>
+                </div>
+                <div class="flex space-x-1">
+                    <a href="{% url 'patients:patient_list' %}"
+                       class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-list mr-1"></i>
+                        View All 
+                    </a>
+                    <a href="{% url 'patients:add' %}"
+                       class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                        <i class="fas fa-user-plus mr-1"></i>
+                        Add Patient
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto">
+            <div class="divide-y divide-gray-100 recent-patients-list">
+                {% if recent_patients %}
+                    {% for patient in recent_patients %}
+                    <div class="p-2 hover:bg-gray-50 transition-colors duration-150">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center min-w-0 flex-1">
+                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center mr-2">
+                                    <span class="text-blue-600 font-medium text-xs">
+                                        {{ patient.first_name|first|upper }}{{ patient.last_name|first|upper }}
+                                    </span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center space-x-2">
+                                        <h4 class="text-xs font-medium text-gray-900 truncate">
+                                            {{ patient.first_name }} {{ patient.last_name }}
+                                        </h4>
+                                        {% if patient.status == 'active' %}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+                                                Active
+                                            </span>
+                                        {% elif patient.status == 'discharged' %}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span>
+                                                Discharged
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-gray-500 mr-1.5"></span>
+                                                Inactive
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-xs text-gray-500 truncate mt-0.5">{{ patient.email }}</p>
+                                    <div class="mt-1.5 flex items-center text-xs text-gray-400">
+                                        <span>Joined: {{ patient.date_joined|date:"M d, Y" }}</span>
+                                        <span class="mx-1.5 text-gray-300">•</span>
+                                        <span>{{ patient.date_joined|timesince }} ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ml-2 flex-shrink-0">
+                                <a href="{% url 'patients:detail' patient.id %}" 
+                                   class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-xs font-medium rounded-full text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-100 transition-colors duration-150">
+                                    View
+                                    <i class="fas fa-chevron-right ml-1 text-xs opacity-70"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-8 text-center no-patients-message">
+                        <div class="text-gray-400">
+                            <i class="fas fa-users text-3xl mb-2"></i>
+                            <p class="text-sm font-medium text-gray-500">No recent patients</p>
+                            <p class="text-xs text-gray-400 mt-1">New patients will appear here</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Doctors Section -->
+<div class="grid grid-cols-1 mb-6">
+    <div id="doctorsSection" class="bg-white rounded-lg shadow overflow-hidden fade-up-init">
+        <div class="p-4 border-b border-gray-200 bg-white flex justify-between items-center">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Doctors</h3>
+                <p class="text-sm text-gray-500 mt-1">Registered medical professionals</p>
+            </div>
+            <a href="{% url 'doctors:add' %}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                <i class="fas fa-plus mr-2"></i>
+                Add Doctor
+            </a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialization</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License No.</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% if recent_doctors %}
+                        {% for doctor in recent_doctors %}
+                        <tr class="hover:bg-gray-50 transition-colors duration-150">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-50 flex items-center justify-center">
+                                        <span class="text-green-600 font-medium text-sm">
+                                            {{ doctor.first_name|first|upper }}{{ doctor.last_name|first|upper }}
+                                        </span>
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">Dr. {{ doctor.first_name }} {{ doctor.last_name }}</div>
+                                        <div class="text-xs text-gray-500">Joined {{ doctor.created_at|date:"M d, Y" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{ doctor.email }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{ doctor.specializations|default:"General" }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{ doctor.experience }} years</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900 font-mono">{{ doctor.license_number }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% if doctor.is_available %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Available
+                                    </span>
+                                {% else %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Unavailable
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-right text-sm font-medium">
+                                <a href="{% url 'doctors:detail' doctor.id %}" 
+                                   class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-xs font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-100">
+                                    View
+                                    <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center">
+                                <div class="text-gray-400">
+                                    <i class="fas fa-user-md text-4xl mb-3"></i>
+                                    <p class="text-sm font-medium text-gray-500">No doctors registered yet</p>
+                                    <p class="text-xs text-gray-400 mt-1">Add your first doctor to get started</p>
+                                    <a href="{% url 'doctors:add' %}" 
+                                       class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        Add Doctor
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        {% if recent_doctors %}
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-100 sm:px-6">
+            <div class="flex-1 flex justify-between sm:justify-end">
+                <a href="{% url 'doctors:list' %}" class="inline-flex items-center px-3 py-1.5 border border-gray-200 text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-100">
+                    View all doctors
+                    <i class="fas fa-chevron-right ml-1.5 text-xs"></i>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.is_superuser or user.user_type == 'admin' %}
+{% endif %}
+</main>
+</div>
+{% endif %}
+
+<!-- Monthly Revenue Details Modal -->
+<div id="revenueModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
+                    Monthly Revenue Details
+                </h3>
+                <button onclick="closeRevenueModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Content -->
+            <div class="mt-4">
+                <div class="mb-4 p-4 bg-green-50 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-green-800">Total Monthly Revenue</span>
+                        <span class="text-xl font-bold text-green-900" id="modalTotalRevenue">PKR 0</span>
+                    </div>
+                    <p class="text-xs text-green-600 mt-1">Current month payments</p>
+                </div>
+                
+                <!-- Loading State -->
+                <div id="revenueLoading" class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                    <p class="text-gray-500 mt-2">Loading payment details...</p>
+                </div>
+                
+                <!-- Payments List -->
+                <div id="revenuePaymentsList" class="hidden">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">Payment Breakdown</h4>
+                    <div class="max-h-96 overflow-y-auto">
+                        <div id="paymentsContainer">
+                            <!-- Payments will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="revenueEmpty" class="hidden text-center py-8">
+                    <i class="fas fa-receipt text-4xl text-gray-300"></i>
+                    <p class="text-gray-500 mt-2">No payments found for this month</p>
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="flex justify-end pt-4 border-t border-gray-200 mt-6">
+                <button onclick="closeRevenueModal()" 
+                    class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Patient Modal -->
+<div class="fixed z-50 inset-0 overflow-y-auto hidden" id="newPatientModal">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <form id="newPatientForm">
+                {% csrf_token %}
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="new-patient-modal-title">
+                                Add New Patient
+                            </h3>
+                            <div class="mt-5 grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-6">
+                                <!-- First Name -->
+                                <div class="sm:col-span-3">
+                                    <label for="first_name" class="block text-sm font-medium text-gray-700">First Name <span class="text-red-500">*</span></label>
+                                    <input type="text" name="first_name" id="first_name" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                                
+                                <!-- Last Name -->
+                                <div class="sm:col-span-3">
+                                    <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name <span class="text-red-500">*</span></label>
+                                    <input type="text" name="last_name" id="last_name" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                                
+                                <!-- Email -->
+                                <div class="sm:col-span-3">
+                                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                                    <input type="email" name="email" id="email" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                                
+                                <!-- Phone -->
+                                <div class="sm:col-span-3">
+                                    <label for="phone" class="block text-sm font-medium text-gray-700">Phone <span class="text-red-500">*</span></label>
+                                    <input type="tel" name="phone" id="phone" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                                
+                                <!-- Date of Birth -->
+                                <div class="sm:col-span-3">
+                                    <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                                    <input type="date" name="date_of_birth" id="date_of_birth" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                                
+                                <!-- Gender -->
+                                <div class="sm:col-span-3">
+                                    <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
+                                    <select id="gender" name="gender" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Address -->
+                                <div class="sm:col-span-6">
+                                    <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+                                    <textarea id="address" name="address" rows="2" class="mt-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md"></textarea>
+                                </div>
+                                
+                                <!-- Blood Type -->
+                                <div class="sm:col-span-3">
+                                    <label for="blood_type" class="block text-sm font-medium text-gray-700">Blood Group</label>
+                                    <select id="blood_type" name="blood_type" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                        <option value="">Select Blood Group</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Appointment Type -->
+                                <div class="sm:col-span-3">
+                                    <label for="appointment_type" class="block text-sm font-medium text-gray-700">Appointment Type</label>
+                                    <select id="appointment_type" name="appointment_type" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                        <option value="">Select Type</option>
+                                        <option value="consultation">Consultation</option>
+                                        <option value="followup">Follow-up</option>
+                                        <option value="emergency">Emergency</option>
+                                        <option value="surgery">Surgery</option>
+                                        <option value="checkup">Regular Checkup</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Payment Information -->
+                            <div class="mt-6 pt-6 border-t border-gray-200">
+                                <h4 class="text-sm font-medium text-gray-900 mb-4">Payment Information</h4>
+                                <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-6">
+                                    <!-- Registration Fee -->
+                                    <div class="sm:col-span-3">
+                                        <label for="registration_fee" class="block text-sm font-medium text-gray-700">Registration Fee</label>
+                                        <div class="mt-1 relative rounded-md shadow-sm">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">PKR</span>
+                                            </div>
+                                            <input type="number" step="0.01" name="registration_fee" id="registration_fee" class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-12 pr-12 sm:text-sm border-gray-300 rounded-md" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Payment Method -->
+                                    <div class="sm:col-span-3">
+                                        <label for="payment_method" class="block text-sm font-medium text-gray-700">Payment Method</label>
+                                        <select id="payment_method" name="payment_method" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            <option value="">Select Payment Method</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="card">Credit/Debit Card</option>
+                                            <option value="bank_transfer">Bank Transfer</option>
+                                            <option value="insurance">Insurance</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Payment Notes -->
+                                    <div class="sm:col-span-6">
+                                        <label for="payment_notes" class="block text-sm font-medium text-gray-700">Payment Notes</label>
+                                        <textarea id="payment_notes" name="payment_notes" rows="2" class="mt-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md" placeholder="Additional payment information or notes"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Account Information -->
+                            <div class="mt-6 pt-6 border-t border-gray-200">
+                                <h4 class="text-sm font-medium text-gray-900 mb-4">Account Information</h4>
+                                <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-6">
+                                    <!-- Password -->
+                                    <div class="sm:col-span-3">
+                                        <label for="password1" class="block text-sm font-medium text-gray-700">Password</label>
+                                        <input type="password" name="password1" id="password1" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="At least 8 characters">
+                                    </div>
+                                    
+                                    <!-- Confirm Password -->
+                                    <div class="sm:col-span-3">
+                                        <label for="password2" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                                        <input type="password" name="password2" id="password2" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Confirm password">
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Add Patient & Create Appointment
+                    </button>
+                    <button type="button" onclick="closeNewPatientModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRevenueModal() {
+    document.getElementById('revenueModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    loadRevenueDetails();
+}
+
+function closeRevenueModal() {
+    document.getElementById('revenueModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+function loadRevenueDetails() {
+    // Show loading state
+    document.getElementById('revenueLoading').classList.remove('hidden');
+    document.getElementById('revenuePaymentsList').classList.add('hidden');
+    document.getElementById('revenueEmpty').classList.add('hidden');
+    
+    // Fetch revenue details
+    fetch('/dashboard/revenue-details/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('revenueLoading').classList.add('hidden');
+            
+            if (data.payments && data.payments.length > 0) {
+                displayPayments(data.payments, data.total);
+                document.getElementById('revenuePaymentsList').classList.remove('hidden');
+            } else {
+                document.getElementById('revenueEmpty').classList.remove('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading revenue details:', error);
+            document.getElementById('revenueLoading').classList.add('hidden');
+            document.getElementById('revenueEmpty').classList.remove('hidden');
+        });
+}
+
+function displayPayments(payments, total) {
+    document.getElementById('modalTotalRevenue').textContent = 'PKR ' + parseFloat(total).toLocaleString();
+    
+    const container = document.getElementById('paymentsContainer');
+    container.innerHTML = '';
+    
+    payments.forEach(payment => {
+        const paymentDiv = document.createElement('div');
+        paymentDiv.className = 'flex items-center justify-between p-3 border border-gray-200 rounded-lg mb-2 hover:bg-gray-50';
+        
+        const paymentTypeColor = getPaymentTypeColor(payment.payment_type);
+        const paymentMethodIcon = getPaymentMethodIcon(payment.payment_method);
+        
+        paymentDiv.innerHTML = `
+            <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 ${paymentTypeColor} rounded-full flex items-center justify-center mr-3">
+                    ${paymentMethodIcon}
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-900">${payment.patient_name}</p>
+                    <p class="text-xs text-gray-500">${payment.payment_type_display} • ${payment.payment_method_display}</p>
+                    <p class="text-xs text-gray-400">${payment.payment_date}</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-sm font-semibold text-gray-900">PKR ${parseFloat(payment.amount).toLocaleString()}</p>
+                ${payment.notes ? `<p class="text-xs text-gray-500 max-w-32 truncate">${payment.notes}</p>` : ''}
+            </div>
+        `;
+        
+        container.appendChild(paymentDiv);
+    });
+}
+
+function getPaymentTypeColor(paymentType) {
+    const colors = {
+        'registration': 'bg-blue-100 text-blue-600',
+        'consultation': 'bg-green-100 text-green-600',
+        'procedure': 'bg-purple-100 text-purple-600',
+        'medication': 'bg-orange-100 text-orange-600',
+        'discharge': 'bg-red-100 text-red-600',
+        'other': 'bg-gray-100 text-gray-600'
+    };
+    return colors[paymentType] || colors['other'];
+}
+
+function getPaymentMethodIcon(paymentMethod) {
+    const icons = {
+        'cash': '<i class="fas fa-money-bill-alt text-sm"></i>',
+        'card': '<i class="fas fa-credit-card text-sm"></i>',
+        'bank_transfer': '<i class="fas fa-university text-sm"></i>',
+        'insurance': '<i class="fas fa-shield-alt text-sm"></i>'
+    };
+    return icons[paymentMethod] || '<i class="fas fa-receipt text-sm"></i>';
+}
+
+// Close modal when clicking outside
+document.getElementById('revenueModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeRevenueModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !document.getElementById('revenueModal').classList.contains('hidden')) {
+        closeRevenueModal();
+    }
+});
+
+// Patient Search and New Patient Functions
+let patientsData = [];
+let searchTimeout;
+
+// Load patients data
+function loadPatients() {
+    fetch('/api/patients/')
+        .then(response => response.json())
+        .then(data => {
+            patientsData = data;
+        })
+        .catch(error => {
+            console.error('Error loading patients:', error);
+        });
+}
+
+// Patient search functionality
+document.getElementById('patient_search').addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    const searchTerm = e.target.value.toLowerCase().trim();
+    const dropdown = document.getElementById('patient_dropdown');
+    const addPatientSection = document.getElementById('add_patient_section');
+    
+    if (searchTerm.length < 2) {
+        dropdown.classList.add('hidden');
+        addPatientSection.classList.add('hidden');
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+        const filteredPatients = patientsData.filter(patient => 
+            patient.first_name.toLowerCase().includes(searchTerm) ||
+            patient.last_name.toLowerCase().includes(searchTerm) ||
+            patient.email.toLowerCase().includes(searchTerm) ||
+            patient.phone.includes(searchTerm)
+        );
+        
+        if (filteredPatients.length > 0) {
+            showPatientDropdown(filteredPatients);
+            addPatientSection.classList.add('hidden');
+        } else {
+            dropdown.classList.add('hidden');
+            addPatientSection.classList.remove('hidden');
+        }
+    }, 300);
+});
+
+function showPatientDropdown(patients) {
+    const dropdown = document.getElementById('patient_dropdown');
+    dropdown.innerHTML = '';
+    
+    patients.forEach(patient => {
+        const patientDiv = document.createElement('div');
+        patientDiv.className = 'px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0';
+        patientDiv.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-900">${patient.first_name} ${patient.last_name}</div>
+                    <div class="text-xs text-gray-500">${patient.email} • ${patient.phone}</div>
+                </div>
+                <div class="text-xs text-gray-400">
+                    ${patient.age ? patient.age + ' years' : ''}
+                </div>
+            </div>
+        `;
+        
+        patientDiv.addEventListener('click', () => selectPatient(patient));
+        dropdown.appendChild(patientDiv);
+    });
+    
+    dropdown.classList.remove('hidden');
+}
+
+function selectPatient(patient) {
+    document.getElementById('patient_search').value = `${patient.first_name} ${patient.last_name}`;
+    document.getElementById('patient_id').value = patient.id;
+    document.getElementById('patient_dropdown').classList.add('hidden');
+    document.getElementById('add_patient_section').classList.add('hidden');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#patient_search') && !e.target.closest('#patient_dropdown')) {
+        document.getElementById('patient_dropdown').classList.add('hidden');
+        document.getElementById('add_patient_section').classList.add('hidden');
+    }
+});
+
+// New Patient Modal Functions
+function openNewPatientModal() {
+    document.getElementById('newPatientModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeNewPatientModal() {
+    document.getElementById('newPatientModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('newPatientForm').reset();
+}
+
+// Handle new patient form submission
+document.getElementById('newPatientForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('/api/patients/create/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add new patient to the data
+            patientsData.push(data.patient);
+            
+            // Select the new patient
+            selectPatient(data.patient);
+            
+            // Close modal
+            closeNewPatientModal();
+            
+            // Show success message
+            showNotification('Patient added successfully!', 'success');
+        } else {
+            showNotification('Error adding patient: ' + (data.error || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding patient:', error);
+        showNotification('Error adding patient. Please try again.', 'error');
+    });
+});
+
+// Initialize patients on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadPatients();
+});
+</script>
+
+{% endblock %}

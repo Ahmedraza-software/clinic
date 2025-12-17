@@ -1,0 +1,652 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Accounts & Finance - ClinicMS{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<!-- Page Content -->
+<div class="flex-1 overflow-y-auto bg-gray-50 p-6">
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold text-gray-800">Accounts & Finance</h2>
+    <div class="flex space-x-3">
+        <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
+            <i class="fas fa-file-export mr-2"></i> Export
+        </button>
+        <button class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+            <i class="fas fa-print mr-2"></i> Print
+        </button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <!-- Total Revenue -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                <i class="fas fa-dollar-sign text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Total Revenue</p>
+                <p class="text-2xl font-semibold text-gray-800" data-revenue>${{ current_month_revenue|intcomma }}</p>
+                <p class="text-xs {% if revenue_change >= 0 %}text-green-600{% else %}text-red-600{% endif %} mt-1">
+                    {% if revenue_change >= 0 %}
+                        <i class="fas fa-arrow-up mr-1"></i>
+                    {% else %}
+                        <i class="fas fa-arrow-down mr-1"></i>
+                    {% endif %}
+                    {{ revenue_change|floatformat:1 }}% from last month
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Expenses -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                <i class="fas fa-receipt text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Total Expenses</p>
+                <p class="text-2xl font-semibold text-gray-800" data-expenses>${{ current_month_expenses|intcomma }}</p>
+                <p class="text-xs {% if expense_change >= 0 %}text-red-600{% else %}text-green-600{% endif %} mt-1">
+                    {% if expense_change >= 0 %}
+                        <i class="fas fa-arrow-up mr-1"></i>
+                    {% else %}
+                        <i class="fas fa-arrow-down mr-1"></i>
+                    {% endif %}
+                    {{ expense_change|floatformat:1 }}% from last month
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Net Profit -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                <i class="fas fa-chart-line text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Net Profit</p>
+                <p class="text-2xl font-semibold {% if net_profit >= 0 %}text-gray-800{% else %}text-red-600{% endif %}" data-profit>${{ net_profit|intcomma }}</p>
+                <p class="text-xs {% if net_profit_change >= 0 %}text-green-600{% else %}text-red-600{% endif %} mt-1">
+                    {% if net_profit_change >= 0 %}
+                        <i class="fas fa-arrow-up mr-1"></i>
+                    {% else %}
+                        <i class="fas fa-arrow-down mr-1"></i>
+                    {% endif %}
+                    {{ net_profit_change|floatformat:1 }}% from last month
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Outstanding Payments -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                <i class="fas fa-clock text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Outstanding</p>
+                <p class="text-2xl font-semibold text-gray-800">${{ outstanding_bills|intcomma }}</p>
+                <p class="text-xs text-yellow-600 mt-1">
+                    {{ overdue_count }} overdue payments
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue vs Expenses Chart -->
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Revenue vs Expenses (Last 6 Months)</h3>
+        <div class="flex items-center space-x-2">
+            <button class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-md">This Year</button>
+            <button class="px-3 py-1 text-xs bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">Last Year</button>
+        </div>
+    </div>
+    <div class="h-80">
+        <!-- Chart will be rendered here by Chart.js -->
+        <canvas id="revenueExpenseChart" class="w-full h-full"></canvas>
+    </div>
+</div>
+
+<!-- Doctor Revenue Summary -->
+<div class="bg-gradient-to-r from-green-500 to-blue-600 rounded-lg shadow-lg p-6 mb-6 text-white">
+    <div class="flex items-center justify-between">
+        <div>
+            <h3 class="text-lg font-medium">Total Doctor Revenue</h3>
+            <p class="text-3xl font-bold" data-doctor-revenue>${{ total_doctor_revenue|floatformat:2|intcomma }}</p>
+            <p class="text-sm opacity-90">Generated from completed appointments this month</p>
+        </div>
+        <div class="text-right">
+            <div class="text-sm opacity-90">Total Completed Appointments</div>
+            <div class="text-2xl font-semibold" data-appointments>{{ total_completed_appointments }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Doctor Revenue Table -->
+<div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+    <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-900">Revenue by Doctor & Consultation</h3>
+        <select class="text-sm border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500">
+            <option>This Month</option>
+            <option>Last Month</option>
+            <option>This Year</option>
+        </select>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200" id="doctorRevenueTable">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Appointments</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Consultations</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Revenue</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for doctor_revenue in doctor_revenues %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-sm font-medium text-blue-600">{{ doctor_revenue.doctor_initials }}</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ doctor_revenue.doctor_name }}</div>
+                                <div class="text-sm text-gray-500">{{ doctor_revenue.doctor_email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            {{ doctor_revenue.specialty }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                        {{ doctor_revenue.appointment_count }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                        {{ doctor_revenue.consultation_count }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600">
+                        ${{ doctor_revenue.total_revenue|floatformat:2|intcomma }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                        No doctor revenue data found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="bg-gray-50">
+                <tr>
+                    <td colspan="4" class="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                        Total Revenue:
+                    </td>
+                    <td class="px-6 py-3 text-right text-sm font-bold text-green-600" id="totalRevenueFooter">
+                        ${{ total_doctor_revenue|floatformat:2|intcomma }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+
+<!-- Custom Toast Notifications -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<!-- Custom Payment Confirmation Modal -->
+<div id="paymentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b">
+                <h3 class="text-lg font-medium text-gray-900">Confirm Doctor Payment</h3>
+                <button onclick="closePaymentModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="mt-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center">
+                        <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-user-md text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900" id="modalDoctorName">Dr. John Doe</h4>
+                            <p class="text-sm text-gray-500">Payment Confirmation</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Revenue Generated:</span>
+                        <span class="font-medium text-gray-900" id="modalRevenueAmount">$0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Clinic Share (20%):</span>
+                        <span class="font-medium text-green-600" id="modalClinicShare">$0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t pt-3">
+                        <span class="text-sm font-medium text-gray-900">Doctor Payout (80%):</span>
+                        <span class="font-bold text-purple-600 text-lg" id="modalDoctorPayout">$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5 mr-2"></i>
+                        <div class="text-sm text-yellow-800">
+                            <p class="font-medium">This action will:</p>
+                            <ul class="mt-1 list-disc list-inside space-y-1">
+                                <li>Mark the doctor as PAID</li>
+                                <li>Add payout amount as clinic expense</li>
+                                <li>Reduce clinic net profit</li>
+                                <li>Cannot be undone</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t">
+                <button onclick="closePaymentModal()" 
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="confirmPayment()" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-credit-card mr-2"></i>
+                    Confirm Payment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Get chart data from Django context
+const chartData = {{ chart_data|safe }};
+
+// Revenue vs Expenses Chart
+const revenueExpenseCtx = document.getElementById('revenueExpenseChart').getContext('2d');
+const revenueExpenseChart = new Chart(revenueExpenseCtx, {
+    type: 'bar',
+    data: {
+        labels: chartData.revenue_vs_expenses.labels,
+        datasets: [
+            {
+                label: 'Revenue',
+                data: chartData.revenue_vs_expenses.revenue_data,
+                backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                borderColor: 'rgba(34, 197, 94, 1)',
+                borderWidth: 1,
+                borderRadius: 4,
+                barPercentage: 0.5
+            },
+            {
+                label: 'Expenses',
+                data: chartData.revenue_vs_expenses.expense_data,
+                backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                borderColor: 'rgba(239, 68, 68, 1)',
+                borderWidth: 1,
+                borderRadius: 4,
+                barPercentage: 0.5
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': $' + context.raw.toLocaleString();
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Global variables for modal
+let currentDoctorId = null;
+let currentPayoutAmount = 0;
+
+// Custom Toast Notification System
+function showToast(message, type = 'success', duration = 5000) {
+    const toastContainer = document.getElementById('toastContainer');
+    const toastId = 'toast-' + Date.now();
+    
+    // Define toast styles based on type
+    const toastStyles = {
+        success: {
+            bgColor: 'bg-green-500',
+            icon: 'fas fa-check-circle',
+            iconColor: 'text-white'
+        },
+        error: {
+            bgColor: 'bg-red-500',
+            icon: 'fas fa-exclamation-circle',
+            iconColor: 'text-white'
+        },
+        warning: {
+            bgColor: 'bg-yellow-500',
+            icon: 'fas fa-exclamation-triangle',
+            iconColor: 'text-white'
+        },
+        info: {
+            bgColor: 'bg-blue-500',
+            icon: 'fas fa-info-circle',
+            iconColor: 'text-white'
+        }
+    };
+    
+    const style = toastStyles[type] || toastStyles.success;
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `${style.bgColor} text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out translate-x-full opacity-0 max-w-sm`;
+    
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <i class="${style.icon} ${style.iconColor} text-xl mr-3"></i>
+            <div class="flex-1">
+                <p class="font-medium">${message}</p>
+            </div>
+            <button onclick="closeToast('${toastId}')" class="ml-4 text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    // Add to container
+    toastContainer.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full', 'opacity-0');
+        toast.classList.add('translate-x-0', 'opacity-100');
+    }, 100);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        closeToast(toastId);
+    }, duration);
+}
+
+function closeToast(toastId) {
+    const toast = document.getElementById(toastId);
+    if (toast) {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }
+}
+
+// Open payment modal
+function openPaymentModal(doctorId, doctorName, payoutAmount, revenueAmount) {
+    currentDoctorId = doctorId;
+    currentPayoutAmount = payoutAmount;
+    
+    // Calculate clinic share (20%)
+    const clinicShare = revenueAmount * 0.2;
+    
+    // Update modal content
+    document.getElementById('modalDoctorName').textContent = doctorName;
+    document.getElementById('modalRevenueAmount').textContent = '$' + parseFloat(revenueAmount).toFixed(2);
+    document.getElementById('modalClinicShare').textContent = '$' + clinicShare.toFixed(2);
+    document.getElementById('modalDoctorPayout').textContent = '$' + parseFloat(payoutAmount).toFixed(2);
+    
+    // Show modal
+    document.getElementById('paymentModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+}
+
+// Close payment modal
+function closePaymentModal() {
+    document.getElementById('paymentModal').classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Restore scrolling
+    currentDoctorId = null;
+    currentPayoutAmount = 0;
+}
+
+// Confirm payment
+async function confirmPayment() {
+    if (!currentDoctorId || !currentPayoutAmount) {
+        showToast('Invalid payment data', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const confirmButton = document.querySelector('#paymentModal button[onclick="confirmPayment()"]');
+    const originalText = confirmButton.innerHTML;
+    confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    confirmButton.disabled = true;
+    
+    try {
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        const response = await fetch('/finance/pay-doctor/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                doctor_id: currentDoctorId,
+                amount: currentPayoutAmount
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            closePaymentModal();
+            // Show success toast
+            showToast(result.message || 'Payment processed successfully!', 'success', 6000);
+            // Reload after a short delay to show the toast
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showToast('Error processing payment: ' + result.error, 'error');
+            // Reset button
+            confirmButton.innerHTML = originalText;
+            confirmButton.disabled = false;
+        }
+    } catch (error) {
+        showToast('Error processing payment: ' + error.message, 'error');
+        // Reset button
+        confirmButton.innerHTML = originalText;
+        confirmButton.disabled = false;
+    }
+}
+
+// Close modal when clicking outside
+document.getElementById('paymentModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closePaymentModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !document.getElementById('paymentModal').classList.contains('hidden')) {
+        closePaymentModal();
+    }
+});
+
+// Auto-refresh financial data every 30 seconds
+let autoRefreshInterval;
+
+function startAutoRefresh() {
+    autoRefreshInterval = setInterval(refreshFinancialData, 30000); // 30 seconds
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+}
+
+async function refreshFinancialData() {
+    try {
+        const response = await fetch('/finance/refresh-data/');
+        const result = await response.json();
+        
+        if (result.success) {
+            updateFinancialDisplay(result.data);
+        }
+    } catch (error) {
+        console.log('Auto-refresh failed:', error);
+    }
+}
+
+function updateFinancialDisplay(data) {
+    // Update summary cards
+    const revenueElement = document.querySelector('[data-revenue]');
+    const expensesElement = document.querySelector('[data-expenses]');
+    const profitElement = document.querySelector('[data-profit]');
+    const doctorRevenueElement = document.querySelector('[data-doctor-revenue]');
+    const appointmentsElement = document.querySelector('[data-appointments]');
+    const clinicShareElement = document.querySelector('[data-clinic-share]');
+    const doctorPayoutsElement = document.querySelector('[data-doctor-payouts]');
+    
+    if (revenueElement) {
+        revenueElement.textContent = '$' + data.current_month_revenue.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+    if (expensesElement) {
+        expensesElement.textContent = '$' + data.current_month_expenses.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+    if (profitElement) {
+        profitElement.textContent = '$' + data.net_profit.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+    if (doctorRevenueElement) {
+        doctorRevenueElement.textContent = '$' + data.total_doctor_revenue.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+    if (appointmentsElement) {
+        appointmentsElement.textContent = data.total_completed_appointments;
+    }
+    if (clinicShareElement) {
+        clinicShareElement.textContent = '$' + data.clinic_share.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+    if (doctorPayoutsElement) {
+        doctorPayoutsElement.textContent = '$' + data.total_doctor_payouts.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+    
+    // Update doctor revenue table
+    updateDoctorRevenueTable(data.doctor_revenues, data.total_doctor_revenue);
+}
+
+function updateDoctorRevenueTable(doctorRevenues, totalRevenue) {
+    const tableBody = document.querySelector('#doctorRevenueTable tbody');
+    const totalRevenueFooter = document.querySelector('#totalRevenueFooter');
+    
+    if (!tableBody) return;
+    
+    // Clear existing rows
+    tableBody.innerHTML = '';
+    
+    if (doctorRevenues && doctorRevenues.length > 0) {
+        doctorRevenues.forEach(doctor => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50';
+            
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span class="text-sm font-medium text-blue-600">${doctor.doctor_initials}</span>
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">${doctor.doctor_name}</div>
+                            <div class="text-sm text-gray-500">${doctor.doctor_email}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        ${doctor.specialty}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                    ${doctor.appointment_count}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                    ${doctor.consultation_count}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600">
+                    $${doctor.total_revenue.toLocaleString('en-US', {minimumFractionDigits: 2})}
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+    } else {
+        // Show empty state
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = `
+            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                No doctor revenue data found.
+            </td>
+        `;
+        tableBody.appendChild(emptyRow);
+    }
+    
+    // Update total revenue in footer
+    if (totalRevenueFooter) {
+        totalRevenueFooter.textContent = '$' + totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+}
+
+// Start auto-refresh when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    startAutoRefresh();
+});
+
+// Stop auto-refresh when page is hidden (user switches tabs)
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        stopAutoRefresh();
+    } else {
+        startAutoRefresh();
+    }
+});
+
+</script>
+{% endblock %}

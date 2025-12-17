@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Stock History - {{ item.name }} - ClinicMS{% endblock %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto bg-gray-50 p-6">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-800">Stock Movement History</h2>
+                <p class="text-gray-600 mt-1">{{ item.name }}</p>
+            </div>
+            <a href="{% url 'inventory:dashboard' %}" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Inventory
+            </a>
+        </div>
+
+        <!-- Item Info Card -->
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Item Details</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500">Current Stock</label>
+                        <p class="mt-1 text-2xl font-semibold text-gray-900">{{ item.quantity_in_stock|intcomma }}</p>
+                        <p class="text-sm text-gray-500">{{ item.unit }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500">Minimum Quantity</label>
+                        <p class="mt-1 text-lg font-medium text-gray-900">{{ item.minimum_quantity|intcomma }}</p>
+                        <p class="text-sm text-gray-500">{{ item.unit }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500">Unit Price</label>
+                        <p class="mt-1 text-lg font-medium text-gray-900">${{ item.price_per_unit|floatformat:2 }}</p>
+                        <p class="text-sm text-gray-500">per {{ item.unit }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500">Total Value</label>
+                        <p class="mt-1 text-lg font-medium text-gray-900">${{ item.total_value|floatformat:2 }}</p>
+                        <p class="text-sm text-gray-500">current value</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Movements Table -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Movement History</h3>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for movement in movements %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ movement.created_at|date:"M d, Y" }}
+                                <div class="text-xs text-gray-500">{{ movement.created_at|time:"g:i A" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if movement.movement_type == 'IN' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-arrow-up mr-1"></i> Stock In
+                                    </span>
+                                {% elif movement.movement_type == 'OUT' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <i class="fas fa-arrow-down mr-1"></i> Stock Out
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <i class="fas fa-edit mr-1"></i> Adjustment
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {% if movement.quantity > 0 %}
+                                    <span class="text-green-600">+{{ movement.quantity|intcomma }}</span>
+                                {% else %}
+                                    <span class="text-red-600">{{ movement.quantity|intcomma }}</span>
+                                {% endif %}
+                                <span class="text-gray-500 ml-1">{{ item.unit }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ movement.reference|default:"-" }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                {{ movement.notes|default:"-" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ movement.created_by.get_full_name|default:movement.created_by.username }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <i class="fas fa-history text-4xl text-gray-300 mb-4"></i>
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">No movement history</h3>
+                                    <p class="text-sm text-gray-500">Stock movements will appear here when items are added or removed.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

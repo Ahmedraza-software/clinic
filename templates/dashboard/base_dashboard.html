@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* Custom styles for dashboard */
+    .dashboard-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .stat-card {
+        border-left: 4px solid #4299e1;
+    }
+    .stat-card.primary {
+        border-left-color: #4299e1;
+    }
+    .stat-card.success {
+        border-left-color: #48bb78;
+    }
+    .stat-card.warning {
+        border-left-color: #ed8936;
+    }
+    .stat-card.danger {
+        border-left-color: #f56565;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex h-screen bg-gray-100">
+    <!-- Sidebar -->
+    <div class="sidebar bg-blue-800 text-white w-64 flex-shrink-0">
+        <!-- Logo -->
+        <div class="p-4 border-b border-blue-700">
+            <div class="flex items-center">
+                <i class="fas fa-hospital text-2xl mr-2"></i>
+                <span class="text-xl font-bold">ClinicMS</span>
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="p-4 border-b border-blue-700">
+            <div class="flex items-center">
+                <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">
+                        {% if user.is_authenticated %}
+                            {{ user.get_full_name|default:user.username }}
+                        {% else %}
+                            Guest
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-blue-200">
+                        {% if user.is_authenticated %}
+                            {{ user.get_user_type_display|default:"User" }}
+                        {% else %}
+                            Not logged in
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto">
+            <div class="p-2">
+                <!-- Dashboard -->
+                <div class="mb-1">
+                    <a href="{% url 'dashboard' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'dashboard' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-home w-5 mr-3 text-center"></i>
+                        Dashboard
+                    </a>
+                </div>
+
+                <!-- Operation Theater -->
+                <div class="mb-1 mt-6">
+                    <p class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Operation Theater</p>
+                    <a href="{% url 'ot_management' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'ot_management' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-procedures w-5 mr-3 text-center"></i>
+                        OT Management
+                    </a>
+                    <a href="{% url 'blood_transfer' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'blood_transfer' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-tint w-5 mr-3 text-center"></i>
+                        Blood Transfer
+                    </a>
+                    <a href="{% url 'patient_medical_history' 0 %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'medical_history' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-notes-medical w-5 mr-3 text-center"></i>
+                        Patient Medical History
+                    </a>
+                </div>
+
+                <!-- Billing & Finance -->
+                <div class="mb-1 mt-6">
+                    <p class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Billing & Finance</p>
+                    <a href="{% url 'patient_bills' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'patient_bills' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-file-invoice-dollar w-5 mr-3 text-center"></i>
+                        Patient Bills
+                    </a>
+                    <a href="{% url 'consultation_fees' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'consultation_fees' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-money-bill-wave w-5 mr-3 text-center"></i>
+                        Consultation Fees
+                    </a>
+                    <a href="{% url 'accounts_finance' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'accounts_finance' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-calculator w-5 mr-3 text-center"></i>
+                        Accounts & Finance
+                    </a>
+                    <a href="{% url 'expenses' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'expenses' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-receipt w-5 mr-3 text-center"></i>
+                        Expenses
+                    </a>
+                </div>
+
+                <!-- Management -->
+                <div class="mb-1 mt-6">
+                    <p class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Management</p>
+                    <a href="{% url 'inventory_management' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'inventory' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-boxes w-5 mr-3 text-center"></i>
+                        Inventory
+                    </a>
+                    <a href="{% url 'patient_reviews' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'reviews' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-star w-5 mr-3 text-center"></i>
+                        Patient Reviews
+                    </a>
+                    <a href="{% url 'complaints' %}" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-md {% if active_page == 'complaints' %}bg-blue-700{% else %}text-blue-100 hover:bg-blue-700{% endif %}">
+                        <i class="fas fa-exclamation-circle w-5 mr-3 text-center"></i>
+                        Complaints
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Logout -->
+        <div class="p-4 border-t border-blue-700">
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="flex items-center text-sm font-medium text-blue-200 hover:text-white">
+                    <i class="fas fa-sign-out-alt w-5 mr-2"></i> Logout
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="flex items-center text-sm font-medium text-blue-200 hover:text-white">
+                    <i class="fas fa-sign-in-alt w-5 mr-2"></i> Login
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Bar -->
+        <header class="bg-white shadow-sm">
+            <div class="flex items-center justify-between px-6 py-3">
+                <h1 class="text-xl font-semibold text-gray-800">{% block page_title %}{{ page_title|default:'Dashboard' }}{% endblock %}</h1>
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 text-gray-500 rounded-full hover:bg-gray-100">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="relative">
+                        <button class="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                            <span>{{ user.get_short_name|default:user.username }}</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+            {% block dashboard_content %}
+            <!-- Page specific content will go here -->
+            {% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

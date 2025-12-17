@@ -1,0 +1,194 @@
+{% extends 'operation_theater/base_ot.html' %}
+{% load widget_tweaks %}
+
+
+
+
+{% block ot_content %}
+<style>
+  /* Hide only the sidebar navigation links on this page (keep sidebar visible) */
+  #sidebar ul.nav.flex-column { display: none !important; }
+  #sidebar .position-sticky { padding-top: 0 !important; }
+  /* Remove the page title header bar space from base layout to save vertical space */
+  main.col-md-9.ms-sm-auto.col-lg-10.px-md-4 > .d-flex.border-bottom { display: none !important; }
+  /* Compact the main content area */
+  .ot-compact { max-width: 900px; margin: 0 auto; }
+  .ot-compact h1 { font-size: 1rem; margin: 0; font-weight: 600; }
+  .ot-compact .section-title { font-size: 0.8125rem; margin: 0; font-weight: 600; }
+  .ot-compact .card-pad { padding: 0.875rem !important; }
+  .ot-compact .field-gap { gap: 0.875rem !important; }
+  .ot-compact .btn { padding: 0.4375rem 0.875rem; font-size: 0.8125rem; }
+  /* Make inputs high-contrast and clearly visible */
+  .ot-compact .form-control {
+    color: #6b7280 !important;
+    background-color: #ffffff !important;
+    border-color: #d1d5db !important;
+    border-width: 1.5px !important;
+    border-radius: 6px !important;
+    font-size: 0.875rem !important;
+    padding: 0.5rem 0.75rem !important;
+    min-height: 38px;
+  }
+  .ot-compact .form-control::placeholder {
+    color: #9ca3af !important;
+    opacity: 1;
+  }
+  .ot-compact .form-control:focus {
+    color: #4b5563 !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1) !important;
+    outline: none;
+  }
+  .ot-compact .form-check-input {
+    width: 1.125rem;
+    height: 1.125rem;
+    border-color: #d1d5db !important;
+    background-color: #f3f4f6 !important;
+    border-width: 1.5px !important;
+    border-radius: 4px !important;
+  }
+  .ot-compact .form-check-input:checked {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+  }
+  .ot-compact label.form-check-label,
+  .ot-compact label[for] {
+    color: #374151;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  .ot-compact .text-red-500 {
+    color: #ef4444;
+    font-weight: 600;
+    background: none;
+  }
+</style>
+<div class="bg-gray-50 py-3 px-3 ot-compact">
+  <div class="max-w-full mx-auto">
+    <div class="bg-white rounded-lg shadow-sm" style="border: 1.5px solid #e5e7eb;">
+      <div class="px-4 py-3 border-b border-gray-200 card-pad" style="background: #f9fafb;">
+        <h1 class="text-gray-900 ot-title">Operation Theater</h1>
+      </div>
+
+      <div class="p-4 card-pad">
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3">
+              {% for error in form.non_field_errors %}
+                <div class="flex items-start"><i class="fas fa-exclamation-triangle mt-0.5 mr-2"></i> {{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <!-- Basic Information -->
+        <div>
+          <div class="border-b border-gray-200 pb-2 mb-3">
+            <h3 class="text-gray-700 m-0 section-title">Basic Information</h3>
+          </div>
+          <div class="grid grid-cols-1 field-gap sm:grid-cols-2">
+              <div>
+              <label for="{{ form.name.id_for_label }}" class="block font-medium text-gray-700 mb-1" style="font-size: 0.8125rem;">{{ form.name.label }} {% if form.name.field.required %}<span class="text-red-500">*</span>{% endif %}</label>
+                {{ form.name|add_class:"form-control"|attr:"placeholder:Enter a unique OT name"|attr:"autocomplete:off"|attr:"autofocus:autofocus"|attr:"maxlength:120" }}
+                {% if form.name.errors %}
+                <p class="mt-1 text-red-600" style="font-size: 0.75rem;">{{ form.name.errors.0 }}</p>
+              {% endif %}
+              {% if form.name.help_text %}<p class="mt-1 text-gray-500" style="font-size: 0.75rem;">{{ form.name.help_text }}</p>{% endif %}
+              </div>
+
+              <div>
+              <label for="{{ form.location.id_for_label }}" class="block font-medium text-gray-700 mb-1" style="font-size: 0.8125rem;">{{ form.location.label }} {% if form.location.field.required %}<span class="text-red-500">*</span>{% endif %}</label>
+                {{ form.location|add_class:"form-control"|attr:"placeholder:Building / Floor / Room"|attr:"autocomplete:off"|attr:"maxlength:120" }}
+                {% if form.location.errors %}
+                <p class="mt-1 text-red-600" style="font-size: 0.75rem;">{{ form.location.errors.0 }}</p>
+              {% endif %}
+              {% if form.location.help_text %}<p class="mt-1 text-gray-500" style="font-size: 0.75rem;">{{ form.location.help_text }}</p>{% endif %}
+              </div>
+
+              <div class="sm:col-span-2">
+              <label for="{{ form.supervising_doctors.id_for_label }}" class="block font-medium text-gray-700 mb-1" style="font-size: 0.8125rem;">Supervising Doctors</label>
+                {{ form.supervising_doctors|add_class:"form-control"|attr:"multiple:multiple" }}
+                {% if form.supervising_doctors.errors %}
+                <p class="mt-1 text-red-600" style="font-size: 0.75rem;">{{ form.supervising_doctors.errors.0 }}</p>
+              {% endif %}
+              {% if form.supervising_doctors.help_text %}
+                <p class="mt-1 text-gray-500" style="font-size: 0.75rem;">{{ form.supervising_doctors.help_text }}</p>
+              {% else %}
+                <p class="mt-1 text-gray-500" style="font-size: 0.75rem;">Select one or more doctors who supervise this OT. Hold Ctrl (Cmd on Mac) to select multiple.</p>
+              {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Availability -->
+        <div>
+          <div class="border-b border-gray-200 pb-2 mb-3">
+            <h3 class="text-gray-700 m-0 section-title">Availability</h3>
+          </div>
+            <div class="form-check">
+              {{ form.is_available|add_class:"form-check-input" }}
+              <label for="{{ form.is_available.id_for_label }}" class="form-check-label ms-2">{{ form.is_available.label }}</label>
+            </div>
+            {% if form.is_available.errors %}
+            <p class="mt-1 text-red-600" style="font-size: 0.75rem;">{{ form.is_available.errors.0 }}</p>
+          {% endif %}
+          {% if form.is_available.help_text %}<p class="mt-1 text-gray-500" style="font-size: 0.75rem;">{{ form.is_available.help_text }}</p>{% endif %}
+          </div>
+
+          <!-- Additional Details -->
+        <div>
+          <div class="border-b border-gray-200 pb-2 mb-3">
+            <h3 class="text-gray-700 m-0 section-title">Additional Details</h3>
+          </div>
+          <label for="{{ form.description.id_for_label }}" class="block font-medium text-gray-700 mb-1" style="font-size: 0.8125rem;">{{ form.description.label }} {% if form.description.field.required %}<span class="text-red-500">*</span>{% endif %}</label>
+            {{ form.description|add_class:"form-control"|attr:"rows:3"|attr:"placeholder:Notes about equipment, special conditions, etc."|attr:"maxlength:500" }}
+          {% if form.description.errors %}
+            <p class="mt-1 text-red-600" style="font-size: 0.75rem;">{{ form.description.errors.0 }}</p>
+          {% endif %}
+          {% if form.description.help_text %}<p class="mt-1 text-gray-500" style="font-size: 0.75rem;">{{ form.description.help_text }}</p>{% endif %}
+          </div>
+
+          <!-- Actions -->
+        <div class="mt-3 pt-4 border-t border-gray-200 flex justify-end gap-2">
+          <a href="{% url 'operation_theater:ot_list' %}" class="btn border border-gray-300 rounded-md font-medium text-gray-700 bg-white hover:bg-gray-50">Back to List</a>
+          <button type="reset" class="btn border border-gray-300 rounded-md font-medium text-gray-700 bg-white hover:bg-gray-50">Reset</button>
+          <button type="submit" class="btn border border-transparent rounded-md font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Save</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function(){
+        function bindCharCounter(inputId, counterId, max){
+            var el = document.getElementById(inputId);
+            var counter = document.getElementById(counterId);
+            if(!el || !counter) return;
+            function update(){
+                var len = el.value ? el.value.length : 0;
+                counter.textContent = len;
+            }
+            el.addEventListener('input', update);
+            update();
+        }
+        document.addEventListener('DOMContentLoaded', function(){
+            var desc = document.getElementById('{{ form.description.id_for_label }}');
+            if (!desc) {
+                desc = document.querySelector('textarea[name="{{ form.description.html_name }}"]');
+                if (desc) desc.setAttribute('id', 'ot_description_dynamic');
+            }
+            if (!document.getElementById('descCount')) return;
+            bindCharCounter(desc ? desc.id : '{{ form.description.id_for_label }}', 'descCount', 500);
+        });
+    })();
+    // Placeholder for other JS in this page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any JavaScript components if needed
+    });
+</script>
+{% endblock %}

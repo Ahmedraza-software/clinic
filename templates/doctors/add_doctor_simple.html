@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add New Doctor - Clinic Management System{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">Add New Doctor</h1>
+                    <p class="mt-1 text-sm text-gray-500">Fill in the doctor information below</p>
+                </div>
+                <a href="{% url 'dashboard' %}" class="text-sm text-blue-600 hover:text-blue-800">
+                    ← Back
+                </a>
+            </div>
+            
+            <!-- Messages -->
+            <div class="p-6">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-4 p-3 rounded {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form id="doctorForm" method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Account Information -->
+                    <div class="space-y-6">
+                        <div class="border-b border-gray-200 pb-3">
+                            <h3 class="text-base font-medium text-gray-900">Account Information</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Email <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.email }}
+                            </div>
+
+                            <div>
+                                <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Phone
+                                </label>
+                                {{ user_form.phone }}
+                            </div>
+
+                            <div>
+                                <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                    First Name <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.first_name }}
+                            </div>
+
+                            <div>
+                                <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Last Name <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.last_name }}
+                            </div>
+
+                            <div>
+                                <label for="id_password1" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Password <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.password1 }}
+                                <p class="mt-1 text-xs text-gray-500">At least 8 characters</p>
+                            </div>
+
+                            <div>
+                                <label for="id_password2" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Confirm Password <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.password2 }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Information -->
+                    <div class="space-y-6 mt-8">
+                        <div class="border-b border-gray-200 pb-3">
+                            <h3 class="text-base font-medium text-gray-900">Professional Information</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label for="id_license_number" class="block text-sm font-medium text-gray-700 mb-1">
+                                    License Number <span class="text-red-500">*</span>
+                                </label>
+                                {{ doctor_form.license_number }}
+                            </div>
+
+                            <div>
+                                <label for="id_gender" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Gender <span class="text-red-500">*</span>
+                                </label>
+                                {{ doctor_form.gender }}
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="id_specialization" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Specialization <span class="text-red-500">*</span>
+                                </label>
+                                {{ doctor_form.specialization }}
+                                <p class="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd to select multiple specializations</p>
+                            </div>
+
+                            <div>
+                                <label for="id_experience" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Experience (Years) <span class="text-red-500">*</span>
+                                </label>
+                                {{ doctor_form.experience }}
+                            </div>
+
+                            <div>
+                                <label for="id_consultation_fee" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Consultation Fee <span class="text-red-500">*</span>
+                                </label>
+                                {{ doctor_form.consultation_fee }}
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="id_bio" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Bio
+                                </label>
+                                {{ doctor_form.bio }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="mt-8 flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                        <a href="{% url 'dashboard' %}"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                            class="px-6 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Add Doctor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+    }
+    
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    input[type="number"]:focus,
+    input[type="tel"]:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}

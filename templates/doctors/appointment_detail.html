@@ -1,0 +1,881 @@
+{% extends 'doctors/base_doctor.html' %}
+{% load static doctor_tags %}
+
+{% block doctor_title %}Appointment #{{ appointment.id }} - {{ appointment.get_appointment_type_display }}{% endblock %}
+
+{% block doctor_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'doctors:appointment_list' %}" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="h2 mb-0">
+            {{ appointment.get_appointment_type_display }}
+            <small class="text-muted">#{{ appointment.id }}</small>
+        </h1>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'doctors:appointment_edit' appointment.id %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-edit me-1"></i> Edit
+            </a>
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split" 
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changeStatusModal">
+                        <i class="fas fa-exchange-alt me-2"></i>Change Status
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#rescheduleModal"
+                       {% if appointment.status == 'cancelled' or appointment.status == 'completed' %}disabled{% endif %}>
+                        <i class="fas fa-calendar-alt me-2"></i>Reschedule
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#cancelModal"
+                       {% if appointment.status == 'cancelled' or appointment.status == 'completed' %}disabled{% endif %}>
+                        <i class="fas fa-times me-2"></i>Cancel Appointment
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="btn-group me-2">
+            <a href="{% url 'doctors:appointment_print' appointment.id %}" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-print me-1"></i> Print
+            </a>
+        </div>
+        {% if appointment.status != 'completed' and appointment.status != 'cancelled' %}
+            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#completeModal">
+                <i class="fas fa-check-circle me-1"></i> Complete
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- Appointment Details -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Appointment Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Status:</span>
+                    <span class="badge bg-{{ appointment.status|get_status_badge }}">
+                        <i class="{{ appointment.status|get_status_icon }} me-1"></i>
+                        {{ appointment.get_status_display }}
+                    </span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Date:</span>
+                    <span>{{ appointment.appointment_date|date:"F d, Y" }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Time:</span>
+                    <span>
+                        {{ appointment.appointment_time|time:"g:i A" }}
+                        {% if appointment.end_time %}
+                            - {{ appointment.end_time|time:"g:i A" }}
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Duration:</span>
+                    <span>{{ appointment.get_duration }} minutes</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Type:</span>
+                    <span class="badge {{ appointment.appointment_type|get_appointment_type_badge }} rounded-pill">
+                        <i class="{{ appointment.appointment_type|get_appointment_type_icon }} me-1"></i>
+                        {{ appointment.get_appointment_type_display }}
+                    </span>
+                </div>
+                
+                {% if appointment.reason %}
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Reason:</p>
+                        <p class="mb-0">{{ appointment.reason }}</p>
+                    </div>
+                {% endif %}
+                
+                {% if appointment.notes %}
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Notes:</p>
+                        <p class="mb-0">{{ appointment.notes|linebreaksbr }}</p>
+                    </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Created:</span>
+                    <span>{{ appointment.created_at|date:"M d, Y \a\t g:i A" }}</span>
+                </div>
+                
+                {% if appointment.updated_at %}
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Last Updated:</span>
+                        <span>{{ appointment.updated_at|date:"M d, Y \a\t g:i A" }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Patient Information -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Patient Information</h5>
+                <a href="{% url 'doctors:patient_detail' appointment.patient.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-user me-1"></i> View Profile
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="avatar avatar-xxl mb-2">
+                        {% if appointment.patient.profile_picture %}
+                            <img src="{{ appointment.patient.profile_picture.url }}" 
+                                 alt="{{ appointment.patient.user.get_full_name }}" 
+                                 class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                            <span class="avatar-initial bg-primary text-white" 
+                                  style="width: 80px; height: 80px; line-height: 80px; font-size: 2rem;">
+                                {{ appointment.patient|get_patient_initials }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-1">
+                        <a href="{% url 'doctors:patient_detail' appointment.patient.id %}" class="text-decoration-none">
+                            {{ appointment.patient.user.get_full_name|default:appointment.patient.user.username }}
+                        </a>
+                    </h5>
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-id-card me-1"></i> ID: {{ appointment.patient.id|stringformat:"06d" }}
+                    </p>
+                    <p class="mb-0">
+                        <a href="mailto:{{ appointment.patient.user.email }}" class="text-muted">
+                            <i class="fas fa-envelope me-1"></i> {{ appointment.patient.user.email }}
+                        </a>
+                    </p>
+                    {% if appointment.patient.phone_number %}
+                        <p class="mb-0">
+                            <a href="tel:{{ appointment.patient.phone_number }}" class="text-muted">
+                                <i class="fas fa-phone me-1"></i> {{ appointment.patient.phone_number }}
+                            </a>
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                
+                <div class="mb-2">
+                    <span class="text-muted">Date of Birth:</span>
+                    <span class="float-end">
+                        {{ appointment.patient.date_of_birth|date:"M d, Y"|default:"Not specified" }}
+                        {% if appointment.patient.date_of_birth %}
+                            ({{ appointment.patient.date_of_birth|timesince }})
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="mb-2">
+                    <span class="text-muted">Gender:</span>
+                    <span class="float-end">
+                        {{ appointment.patient.get_gender_display|default:"Not specified" }}
+                    </span>
+                </div>
+                
+                <div class="mb-2">
+                    <span class="text-muted">Blood Type:</span>
+                    <span class="float-end">
+                        {{ appointment.patient.blood_type|default:"Not specified" }}
+                    </span>
+                </div>
+                
+                {% if appointment.patient.allergies.exists %}
+                    <div class="mt-3">
+                        <h6 class="text-muted mb-2">Allergies:</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for allergy in appointment.patient.allergies.all %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger">
+                                    <i class="fas fa-exclamation-circle me-1"></i> {{ allergy.name }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="mt-3">
+                    <a href="{% url 'doctors:patient_medical_history' appointment.patient.id %}" 
+                       class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fas fa-file-medical me-1"></i> View Medical History
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions Card -->
+        <div class="card d-none d-md-block">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if appointment.status != 'completed' and appointment.status != 'cancelled' %}
+                        <button class="btn btn-success mb-2" data-bs-toggle="modal" data-bs-target="#completeModal">
+                            <i class="fas fa-check-circle me-2"></i> Mark as Completed
+                        </button>
+                        
+                        <a href="{% url 'doctors:appointment_edit' appointment.id %}" class="btn btn-outline-primary mb-2">
+                            <i class="fas fa-edit me-2"></i> Edit Appointment
+                        </a>
+                        
+                        <button class="btn btn-outline-warning mb-2" data-bs-toggle="modal" data-bs-target="#rescheduleModal"
+                                {% if appointment.status == 'cancelled' or appointment.status == 'completed' %}disabled{% endif %}>
+                            <i class="fas fa-calendar-alt me-2"></i> Reschedule
+                        </button>
+                        
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal"
+                                {% if appointment.status == 'cancelled' or appointment.status == 'completed' %}disabled{% endif %}>
+                            <i class="fas fa-times me-2"></i> Cancel Appointment
+                        </button>
+                    {% else %}
+                        <a href="{% url 'appointments:book' %}?patient={{ appointment.patient.id }}" class="btn btn-primary mb-2">
+                            <i class="fas fa-calendar-plus me-2"></i> New Appointment
+                        </a>
+                        
+                        <a href="{% url 'doctors:prescription_create' appointment.patient.id %}" class="btn btn-outline-primary mb-2">
+                            <i class="fas fa-prescription me-2"></i> New Prescription
+                        </a>
+                        
+                        <a href="{% url 'doctors:medical_record_create' appointment.patient.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-file-medical me-2"></i> Add Medical Record
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="col-md-8">
+        <!-- Appointment Notes -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Appointment Notes</h5>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                    <i class="fas fa-plus me-1"></i> Add Note
+                </button>
+            </div>
+            <div class="card-body">
+                {% if appointment_notes %}
+                    <div class="timeline">
+                        {% for note in appointment_notes %}
+                            <div class="timeline-item {% if forloop.first %}timeline-item-latest{% endif %}">
+                                <div class="timeline-marker">
+                                    <div class="timeline-marker-indicator">
+                                        <i class="fas fa-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-0">
+                                            {% if note.doctor %}
+                                                Dr. {{ note.doctor.user.get_short_name }}
+                                            {% else %}
+                                                System
+                                            {% endif %}
+                                        </h6>
+                                        <small class="text-muted">
+                                            {{ note.created_at|timesince }} ago
+                                            {% if note.is_important %}
+                                                <span class="badge bg-danger ms-2">
+                                                    <i class="fas fa-exclamation-circle me-1"></i> Important
+                                                </span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <p class="mb-2">{{ note.content|linebreaksbr }}</p>
+                                    {% if note.attachments.exists %}
+                                        <div class="mt-2">
+                                            {% for attachment in note.attachments.all %}
+                                                <a href="{{ attachment.file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary me-2 mb-2">
+                                                    <i class="fas fa-paperclip me-1"></i> {{ attachment.get_file_name }}
+                                                </a>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="text-end">
+                                        <small class="text-muted">{{ note.created_at|date:"M d, Y \a\t g:i A" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i class="fas fa-clipboard fa-3x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">No Notes Found</h5>
+                        <p class="text-muted">There are no notes for this appointment yet.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                            <i class="fas fa-plus me-1"></i> Add Your First Note
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Prescriptions -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Prescriptions</h5>
+                <a href="{% url 'doctors:prescription_create' appointment.patient.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus me-1"></i> New Prescription
+                </a>
+            </div>
+            <div class="card-body">
+                {% if prescriptions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Medication</th>
+                                    <th>Dosage</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prescription in prescriptions %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'doctors:prescription_detail' prescription.id %}" class="text-primary">
+                                                {{ prescription.medication.name }}
+                                            </a>
+                                            <div class="text-muted small">{{ prescription.medication.dosage_form }}</div>
+                                        </td>
+                                        <td>
+                                            {{ prescription.dosage }}
+                                            <div class="text-muted small">{{ prescription.frequency }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ prescription.status|lower }}">
+                                                {{ prescription.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ prescription.date_prescribed|date:"M d, Y" }}</td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'doctors:prescription_detail' prescription.id %}" 
+                                                   class="btn btn-outline-primary" 
+                                                   data-bs-toggle="tooltip" 
+                                                   title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'doctors:prescription_edit' prescription.id %}" 
+                                                   class="btn btn-outline-secondary"
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'doctors:prescription_print' prescription.id %}" 
+                                                   class="btn btn-outline-info"
+                                                   target="_blank"
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Print">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'doctors:patient_prescriptions' appointment.patient.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-prescription me-1"></i> View All Prescriptions ({{ appointment.patient.prescriptions.count }})
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i class="fas fa-prescription-bottle fa-3x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">No Prescriptions Found</h5>
+                        <p class="text-muted">There are no prescriptions for this patient yet.</p>
+                        <a href="{% url 'doctors:prescription_create' appointment.patient.id %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Create Prescription
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Medical Records -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Medical Records</h5>
+                <a href="{% url 'doctors:medical_record_create' appointment.patient.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus me-1"></i> Add Record
+                </a>
+            </div>
+            <div class="card-body">
+                {% if medical_records %}
+                    <div class="list-group list-group-flush">
+                        {% for record in medical_records %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-{{ record.record_type|get_record_type_icon }} me-2"></i>
+                                        {{ record.title }}
+                                    </h6>
+                                    <small class="text-muted">{{ record.record_date|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1">{{ record.description|truncatewords:20 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        Recorded by Dr. {{ record.doctor.user.get_short_name }}
+                                    </small>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'doctors:medical_record_detail' record.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </a>
+                                        <a href="{% url 'doctors:medical_record_edit' record.id %}" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'doctors:patient_medical_records' appointment.patient.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-file-medical me-1"></i> View All Records ({{ appointment.patient.medical_records.count }})
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i class="fas fa-file-medical fa-3x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">No Medical Records Found</h5>
+                        <p class="text-muted">There are no medical records for this patient yet.</p>
+                        <a href="{% url 'doctors:medical_record_create' appointment.patient.id %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Add First Record
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addNoteModalLabel">Add Note to Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'doctors:add_appointment_note' appointment.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="noteContent" class="form-label">Note</label>
+                        <textarea class="form-control" id="noteContent" name="content" rows="6" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="noteAttachments" class="form-label">Attachments (Optional)</label>
+                        <input class="form-control" type="file" id="noteAttachments" name="attachments" multiple>
+                        <div class="form-text">You can upload multiple files (PDF, JPG, PNG, DOC, XLS). Max 5MB per file.</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isImportant" name="is_important">
+                            <label class="form-check-label" for="isImportant">
+                                Mark as important
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Status Modal -->
+<div class="modal fade" id="changeStatusModal" tabindex="-1" aria-labelledby="changeStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeStatusModalLabel">Change Appointment Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'doctors:appointment_status' appointment.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if value == appointment.status %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statusNotes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="statusNotes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule Modal -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rescheduleModalLabel">Reschedule Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'doctors:appointment_reschedule' appointment.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="appointmentDate" class="form-label">New Date</label>
+                        <input type="date" class="form-control" id="appointmentDate" name="appointment_date" required
+                               min="{{ today|date:'Y-m-d' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="appointmentTime" class="form-label">New Time</label>
+                        <input type="time" class="form-control" id="appointmentTime" name="appointment_time" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rescheduleReason" class="form-label">Reason for Rescheduling</label>
+                        <textarea class="form-control" id="rescheduleReason" name="reason" rows="3" required></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="notifyPatient" name="notify_patient" checked>
+                        <label class="form-check-label" for="notifyPatient">
+                            Notify patient about this change
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Reschedule Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Modal -->
+<div class="modal fade" id="completeModal" tabindex="-1" aria-labelledby="completeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="completeModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Complete Appointment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'doctors:appointment_complete' appointment.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>Are you sure you want to mark this appointment as completed?</p>
+                    <div class="mb-3">
+                        <label for="completionNotes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="completionNotes" name="notes" rows="3" 
+                                  placeholder="Add any final notes about the appointment..."></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="createFollowUp" name="create_follow_up">
+                        <label class="form-check-label" for="createFollowUp">
+                            Schedule a follow-up appointment
+                        </label>
+                    </div>
+                    <div id="followUpFields" class="mt-3" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="followUpDate" class="form-label">Follow-up Date</label>
+                                <input type="date" class="form-control" id="followUpDate" name="follow_up_date" 
+                                       min="{{ today|date:'Y-m-d' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="followUpTime" class="form-label">Time</label>
+                                <input type="time" class="form-control" id="followUpTime" name="follow_up_time">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="followUpReason" class="form-label">Reason for Follow-up</label>
+                            <input type="text" class="form-control" id="followUpReason" name="follow_up_reason" 
+                                   placeholder="E.g., Review test results, Post-surgery check">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check-circle me-1"></i> Mark as Completed
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="cancelModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Cancel Appointment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'doctors:appointment_cancel' appointment.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>Are you sure you want to cancel this appointment?</p>
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        This action cannot be undone.
+                    </div>
+                    <div class="mb-3">
+                        <label for="cancellationReason" class="form-label">Reason for Cancellation</label>
+                        <select class="form-select mb-2" id="cancellationReason" name="cancellation_reason" required>
+                            <option value="" selected disabled>Select a reason...</option>
+                            <option value="patient_request">Patient Request</option>
+                            <option value="doctor_unavailable">Doctor Unavailable</option>
+                            <option value="emergency">Emergency</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <textarea class="form-control" id="cancellationNotes" name="cancellation_notes" 
+                                 rows="3" placeholder="Please provide additional details..." required></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="notifyPatientCancel" name="notify_patient" checked>
+                        <label class="form-check-label" for="notifyPatientCancel">
+                            Notify patient about this cancellation
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Close
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-ban me-1"></i> Confirm Cancellation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .avatar-xxl {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0.5rem;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -2rem;
+        top: 0;
+    }
+    
+    .timeline-marker-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        background-color: #fff;
+        border: 2px solid #e9ecef;
+    }
+    
+    .timeline-item-latest .timeline-marker-indicator {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+    
+    .timeline-content {
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+    }
+    
+    .timeline-item-latest .timeline-content {
+        background-color: #e7f1ff;
+        border-left: 3px solid #0d6efd;
+    }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+    }
+    
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        border-bottom-width: 1px;
+    }
+    
+    .table td {
+        vertical-align: middle;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        border-radius: 0.2rem;
+    }
+    
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        padding: 1rem 0;
+    }
+    
+    .list-group-item:first-child {
+        border-top: none;
+        padding-top: 0;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default date for follow-up date to today + 7 days
+        const today = new Date();
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+        
+        const followUpDate = document.getElementById('followUpDate');
+        if (followUpDate) {
+            followUpDate.min = today.toISOString().split('T')[0];
+            followUpDate.value = nextWeek.toISOString().split('T')[0];
+        }
+        
+        // Toggle follow-up fields
+        const createFollowUp = document.getElementById('createFollowUp');
+        const followUpFields = document.getElementById('followUpFields');
+        
+        if (createFollowUp && followUpFields) {
+            createFollowUp.addEventListener('change', function() {
+                followUpFields.style.display = this.checked ? 'block' : 'none';
+                const requiredFields = followUpFields.querySelectorAll('[required]');
+                requiredFields.forEach(function(field) {
+                    field.required = createFollowUp.checked;
+                });
+            });
+        }
+        
+        // Set default time for appointment time
+        const appointmentTime = document.getElementById('appointmentTime');
+        if (appointmentTime) {
+            // Set default time to next hour
+            const now = new Date();
+            const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
+            const hours = String(nextHour.getHours()).padStart(2, '0');
+            const minutes = String(nextHour.getMinutes()).padStart(2, '0');
+            appointmentTime.value = `${hours}:${minutes}`;
+        }
+        
+        // Set minimum date for appointment date to today
+        const appointmentDate = document.getElementById('appointmentDate');
+        if (appointmentDate) {
+            appointmentDate.min = today.toISOString().split('T')[0];
+        }
+        
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

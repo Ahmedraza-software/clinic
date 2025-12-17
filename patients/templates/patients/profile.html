@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - {{ patient.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-900">
+                    <i class="fas fa-user-circle mr-2 text-blue-600"></i>
+                    My Profile
+                </h1>
+                <a href="{% url 'patients:dashboard' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="md:flex md:items-center md:justify-between">
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-xl font-bold leading-7 text-gray-900 sm:text-2xl sm:truncate">
+                            {{ patient.user.get_full_name|default:patient.user.username }}
+                        </h2>
+                        <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
+                            <div class="mt-2 flex items-center text-sm text-gray-500">
+                                <i class="fas fa-envelope mr-1.5 h-4 w-4 text-gray-400"></i>
+                                {{ patient.user.email }}
+                            </div>
+                            {% if patient.phone_number %}
+                            <div class="mt-2 flex items-center text-sm text-gray-500">
+                                <i class="fas fa-phone mr-1.5 h-4 w-4 text-gray-400"></i>
+                                {{ patient.phone_number }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t border-gray-200 pt-6">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="space-y-6">
+                            <!-- Personal Information -->
+                            <div>
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">Personal Information</h3>
+                                <p class="mt-1 text-sm text-gray-500">Update your personal information.</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                <div class="sm:col-span-3">
+                                    <label for="date_of_birth" class="block text-sm font-medium text-gray-700">
+                                        Date of Birth
+                                    </label>
+                                    {{ form.date_of_birth }}
+                                    {% if form.date_of_birth.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.date_of_birth.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="sm:col-span-3">
+                                    <label for="gender" class="block text-sm font-medium text-gray-700">
+                                        Gender
+                                    </label>
+                                    {{ form.gender }}
+                                    {% if form.gender.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.gender.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    <label for="blood_group" class="block text-sm font-medium text-gray-700">
+                                        Blood Group
+                                    </label>
+                                    {{ form.blood_group }}
+                                    {% if form.blood_group.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.blood_group.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    <label for="height" class="block text-sm font-medium text-gray-700">
+                                        Height (cm)
+                                    </label>
+                                    {{ form.height }}
+                                    {% if form.height.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.height.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    <label for="weight" class="block text-sm font-medium text-gray-700">
+                                        Weight (kg)
+                                    </label>
+                                    {{ form.weight }}
+                                    {% if form.weight.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.weight.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="sm:col-span-3">
+                                    <label for="occupation" class="block text-sm font-medium text-gray-700">
+                                        Occupation
+                                    </label>
+                                    {{ form.occupation }}
+                                    {% if form.occupation.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.occupation.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="sm:col-span-3">
+                                    <label for="marital_status" class="block text-sm font-medium text-gray-700">
+                                        Marital Status
+                                    </label>
+                                    {{ form.marital_status }}
+                                    {% if form.marital_status.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.marital_status.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Emergency Contact Information -->
+                            <div class="pt-6">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">Emergency Contact Information</h3>
+                                <p class="mt-1 text-sm text-gray-500">Update your emergency contact details.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                <div class="sm:col-span-2">
+                                    <label for="emergency_contact_name" class="block text-sm font-medium text-gray-700">
+                                        Name
+                                    </label>
+                                    {{ form.emergency_contact_name }}
+                                    {% if form.emergency_contact_name.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.emergency_contact_name.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    <label for="emergency_contact_phone" class="block text-sm font-medium text-gray-700">
+                                        Phone
+                                    </label>
+                                    {{ form.emergency_contact_phone }}
+                                    {% if form.emergency_contact_phone.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.emergency_contact_phone.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    <label for="emergency_contact_relation" class="block text-sm font-medium text-gray-700">
+                                        Relationship
+                                    </label>
+                                    {{ form.emergency_contact_relation }}
+                                    {% if form.emergency_contact_relation.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.emergency_contact_relation.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Medical Information -->
+                            <div class="pt-6">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900">Medical Information</h3>
+                                <p class="mt-1 text-sm text-gray-500">Update your medical details.</p>
+                            </div>
+
+                            <div class="space-y-6">
+                                <div>
+                                    <label for="allergies" class="block text-sm font-medium text-gray-700">
+                                        Allergies
+                                    </label>
+                                    {{ form.allergies }}
+                                    {% if form.allergies.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.allergies.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <label for="current_medications" class="block text-sm font-medium text-gray-700">
+                                        Current Medications
+                                    </label>
+                                    {{ form.current_medications }}
+                                    {% if form.current_medications.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.current_medications.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <label for="past_medical_history" class="block text-sm font-medium text-gray-700">
+                                        Past Medical History
+                                    </label>
+                                    {{ form.past_medical_history }}
+                                    {% if form.past_medical_history.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.past_medical_history.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <label for="family_medical_history" class="block text-sm font-medium text-gray-700">
+                                        Family Medical History
+                                    </label>
+                                    {{ form.family_medical_history }}
+                                    {% if form.family_medical_history.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.family_medical_history.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-5">
+                            <div class="flex justify-end">
+                                <button type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

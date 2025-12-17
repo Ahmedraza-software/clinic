@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}{% block doctor_title %}Doctor Portal{% endblock %} | Clinic Management System{% endblock %}
+
+{% block sidebar %}
+<!-- Doctor Sidebar -->
+<div class="bg-dark text-white p-3" style="width: 250px;">
+    <div class="d-flex flex-column align-items-center mb-4">
+        <div class="mb-2">
+            {% if request.user.doctor.profile_picture %}
+                <img src="{{ request.user.doctor.profile_picture.url }}" alt="Profile Picture" 
+                     class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+            {% else %}
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" 
+                     style="width: 80px; height: 80px;">
+                    <i class="fas fa-user-md fa-2x text-white"></i>
+                </div>
+            {% endif %}
+        </div>
+        <h6 class="mb-0">Dr. {{ request.user.get_full_name|default:request.user.username }}</h6>
+        <small class="text-muted">{{ request.user.doctor.specialization.name|default:"Doctor" }}</small>
+    </div>
+    
+    <hr class="bg-light">
+    
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+            <a href="{% url 'doctors:dashboard' %}" 
+               class="nav-link text-white {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt me-2"></i>
+                Dashboard
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'doctors:appointment_list' %}" 
+               class="nav-link text-white {% if 'appointment' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="far fa-calendar-alt me-2"></i>
+                Appointments
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'doctors:patient_list' %}" 
+               class="nav-link text-white {% if 'patient' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="fas fa-users me-2"></i>
+                Patients
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'doctors:schedule' %}" 
+               class="nav-link text-white {% if 'schedule' in request.resolver_match.url_name or 'availability' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="far fa-clock me-2"></i>
+                Schedule
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'doctors:profile' %}" 
+               class="nav-link text-white {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="far fa-user me-2"></i>
+                Profile
+            </a>
+        </li>
+    </ul>
+    
+    <hr class="bg-light">
+    
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" 
+           id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-cog me-2"></i>
+            <strong>Settings</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+            <li><a class="dropdown-item" href="{% url 'doctors:profile' %}#account">Account Settings</a></li>
+            <li><a class="dropdown-item" href="{% url 'doctors:profile' %}#security">Security</a></li>
+            <li><a class="dropdown-item" href="{% url 'doctors:profile' %}#notifications">Notifications</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% block doctor_content %}
+    {% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // Enable tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Enable popovers
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl)
+    });
+</script>
+{% endblock %}

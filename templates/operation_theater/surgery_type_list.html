@@ -1,0 +1,211 @@
+{% extends 'operation_theater/base_ot.html' %}
+
+{% block page_title %}Surgery Types{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'operation_theater:surgery_type_add' %}" class="btn btn-sm btn-primary">
+        <i class="fas fa-plus me-1"></i> Add Surgery Type
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Surgery Types</h5>
+        <div class="input-group input-group-sm" style="width: 300px;">
+            <input type="text" class="form-control" placeholder="Search surgery types..." id="searchInput">
+            <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if surgery_types %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="surgeryTypesTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Duration</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Usage Count</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for surgery_type in surgery_types %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar avatar-sm me-2">
+                                            <div class="avatar-initial bg-soft-primary text-primary rounded-circle">
+                                                {{ surgery_type.name|first|upper }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ surgery_type.name }}</h6>
+                                            <small class="text-muted">ID: ST-{{ surgery_type.id|stringformat:"04d" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if surgery_type.duration %}
+                                        {{ surgery_type.duration }} mins
+                                    {% else %}
+                                        <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if surgery_type.category %}
+                                        <span class="badge bg-info">{{ surgery_type.get_category_display }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if surgery_type.description %}
+                                        {{ surgery_type.description|truncatewords:5 }}
+                                    {% else %}
+                                        <span class="text-muted">No description</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ surgery_type.surgery_set.count }} surgery(s)
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        <a href="{% url 'operation_theater:surgery_type_edit' surgery_type.pk %}" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger" 
+                                                title="Delete"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteSurgeryTypeModal{{ surgery_type.id }}"
+                                                {% if surgery_type.surgery_set.exists %}disabled{% endif %}>
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" id="deleteSurgeryTypeModal{{ surgery_type.id }}" tabindex="-1" 
+                                         aria-labelledby="deleteSurgeryTypeModalLabel{{ surgery_type.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteSurgeryTypeModalLabel{{ surgery_type.id }}">
+                                                        Confirm Deletion
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete the surgery type <strong>{{ surgery_type.name }}</strong>?</p>
+                                                    {% if surgery_type.surgery_set.exists %}
+                                                        <div class="alert alert-warning">
+                                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                                            This surgery type is being used by {{ surgery_type.surgery_set.count }} surgery(ies) 
+                                                            and cannot be deleted.
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    {% if not surgery_type.surgery_set.exists %}
+                                                        <form action="{% url 'operation_theater:surgery_type_delete' surgery_type.pk %}" method="post" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="fas fa-trash me-1"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <button type="button" class="btn btn-danger" disabled>
+                                                            <i class="fas fa-trash me-1"></i> Delete
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-procedures fa-4x text-muted mb-3"></i>
+                <h5>No Surgery Types Found</h5>
+                <p class="text-muted">
+                    No surgery types have been added yet. Add one to get started.
+                </p>
+                <a href="{% url 'operation_theater:surgery_type_add' %}" class="btn btn-primary mt-2">
+                    <i class="fas fa-plus me-1"></i> Add Surgery Type
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize DataTables if present
+    if (typeof $.fn.DataTable === 'function' && document.getElementById('surgeryTypesTable')) {
+        const table = $('#surgeryTypesTable').DataTable({
+            responsive: true,
+            order: [[0, 'asc']],
+            pageLength: 25,
+            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search...",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                infoEmpty: "No entries found",
+                infoFiltered: "(filtered from _MAX_ total entries)",
+                paginate: {
+                    first: "First",
+                    last: "Last",
+                    next: "Next",
+                    previous: "Previous"
+                }
+            },
+            columnDefs: [
+                { responsivePriority: 1, targets: 0 },  // Name
+                { responsivePriority: 2, targets: -1 }, // Actions
+                { responsivePriority: 3, targets: 1 },  // Duration
+                { responsivePriority: 4, targets: 2 },  // Category
+                { responsivePriority: 5, targets: 3 },  // Description
+                { responsivePriority: 6, targets: 4 }   // Usage Count
+            ]
+        });
+        
+        // Search functionality
+        $('#searchButton').on('click', function() {
+            table.search($('#searchInput').val()).draw();
+        });
+        
+        $('#searchInput').on('keyup', function(e) {
+            if (e.key === 'Enter') {
+                table.search(this.value).draw();
+            }
+        });
+    }
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

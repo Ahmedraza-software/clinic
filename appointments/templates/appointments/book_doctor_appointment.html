@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Appointment with Dr. {{ doctor.user.get_full_name }} - Clinic Management System{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                        Book an Appointment
+                    </h2>
+                    <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
+                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                            <i class="fas fa-user-md mr-1.5 h-4 w-4 text-blue-400"></i>
+                            Dr. {{ doctor.user.get_full_name }}
+                        </div>
+                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                            <i class="fas fa-stethoscope mr-1.5 h-4 w-4 text-blue-400"></i>
+                            {{ doctor.specialization.all|join:", " }}
+                        </div>
+                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                            <i class="fas fa-coins mr-1.5 h-4 w-4 text-blue-400"></i>
+                            ${{ doctor.consultation_fee }} consultation fee
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 flex md:mt-0 md:ml-4
+                    <a href="{% url 'doctors:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Doctors
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Select Date & Time
+                </h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    Choose an available time slot for your appointment with Dr. {{ doctor.user.get_short_name }}.
+                </p>
+            </div>
+            
+            <div class="px-4 py-5 sm:p-6">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Doctor Information -->
+                    <div class="bg-blue-50 p-4 rounded-md mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                {% if doctor.user.profile_picture %}
+                                    <img class="h-16 w-16 rounded-full object-cover" src="{{ doctor.user.profile_picture.url }}" alt="{{ doctor.user.get_full_name }}">
+                                {% else %}
+                                    <div class="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <i class="fas fa-user-md text-2xl text-blue-600"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-medium text-gray-900">Dr. {{ doctor.user.get_full_name }}</h3>
+                                <p class="text-sm text-gray-500">{{ doctor.specialization.all|join:", " }}</p>
+                                <p class="mt-1 text-sm text-gray-700">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    {{ doctor.bio|default:"No additional information provided."|truncatewords:20 }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Date Selection -->
+                    <div class="mb-6">
+                        <label for="appointment_date" class="block text-sm font-medium text-gray-700 mb-2">
+                            Select Date
+                        </label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
+                            {% for day in available_slots|slice:":7" %}
+                                <button type="button" 
+                                    @click="selectedDate = '{{ day.date|date:'Y-m-d' }}'"
+                                    :class="{'bg-blue-600 text-white': selectedDate === '{{ day.date|date:'Y-m-d' }}', 'bg-white text-gray-700 hover:bg-gray-50': selectedDate !== '{{ day.date|date:'Y-m-d' }}'}"
+                                    class="py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <div class="text-xs">{{ day.date|date:'D' }}</div>
+                                    <div class="font-semibold">{{ day.date|date:'d' }}</div>
+                                    <div class="text-xs">{{ day.date|date:'M' }}</div>
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Time Slots -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Available Time Slots
+                        </label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                            {% for slot in available_slots %}
+                                {% if slot.is_available %}
+                                    <button type="button"
+                                        @click="selectTimeSlot('{{ slot.time|time:'H:i' }}')"
+                                        class="py-2 px-3 border border-green-300 bg-green-50 text-green-700 rounded-md text-sm font-medium hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                        :class="{'bg-green-100 border-green-500': selectedTime === '{{ slot.time|time:'H:i' }}'}">
+                                        {{ slot.display_time }}
+                                    </button>
+                                {% else %}
+                                    <button type="button" disabled class="py-2 px-3 border border-gray-200 bg-gray-100 text-gray-400 rounded-md text-sm font-medium cursor-not-allowed">
+                                        {{ slot.display_time }}
+                                    </button>
+                                {% endif %}
+                            {% empty %}
+                                <div class="col-span-full text-center py-4 text-gray-500">
+                                    No available time slots found for the selected date.
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden form fields -->
+                    <input type="hidden" name="appointment_date" :value="selectedDate">
+                    <input type="hidden" name="appointment_time" :value="selectedTime">
+                    
+                    <!-- Submit Button -->
+                    <div class="pt-5">
+                        <div class="flex justify-end">
+                            <button type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                :disabled="!selectedDate || !selectedTime"
+                                :class="{'opacity-50 cursor-not-allowed': !selectedDate || !selectedTime, 'hover:bg-blue-700': selectedDate && selectedTime}"
+                                class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Book Appointment
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
+<script>
+    document.addEventListener('alpine:init', function() {
+        // Convert Django template variables to JavaScript variables
+        var availableSlots = [
+            {% for slot in available_slots %}
+            {
+                date: '{{ slot.date|date:"Y-m-d" }}',
+                time: '{{ slot.time|time:"H:i" }}',
+                displayTime: '{{ slot.display_time|escapejs }}',
+                isAvailable: {% if slot.is_available %}true{% else %}false{% endif %}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        Alpine.data('appointmentBooking', function() {
+            return {
+                selectedDate: '',
+                selectedTime: '',
+                slots: availableSlots,
+                
+                init: function() {
+                    // Initialize with today's date if available
+                    var today = new Date().toISOString().split('T')[0];
+                    var self = this;
+                    var hasToday = this.availableDates.some(function(date) { 
+                        return date === today; 
+                    });
+                    
+                    if (hasToday) {
+                        this.selectedDate = today;
+                    } else if (this.availableDates.length > 0) {
+                        this.selectedDate = this.availableDates[0];
+                    }
+                    
+                    // Set initial hidden values
+                    if (this.selectedDate) {
+                        var dateInput = document.getElementById('appointment_date');
+                        if (dateInput) {
+                            dateInput.value = this.selectedDate;
+                        }
+                    }
+                },
+                
+                selectTimeSlot: function(time) {
+                    this.selectedTime = time;
+                    var timeInput = document.getElementById('appointment_time');
+                    if (timeInput) {
+                        timeInput.value = time;
+                    }
+                },
+                
+                get availableDates: function() {
+                    // Extract unique dates from available slots
+                    var dates = new Set();
+                    this.slots.forEach(function(slot) {
+                        if (slot.isAvailable) {
+                            dates.add(slot.date);
+                        }
+                    });
+                    return Array.from(dates).sort();
+                },
+                
+                get availableTimes: function() {
+                    if (!this.selectedDate) return [];
+                    var self = this;
+                    return this.slots.filter(function(slot) { 
+                        return slot.date === self.selectedDate && slot.isAvailable; 
+                    });
+                }
+            };
+        });
+    });
+</script>
+{% endblock %}

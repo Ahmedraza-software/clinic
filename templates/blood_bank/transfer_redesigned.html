@@ -1,0 +1,543 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Blood Bank Management - Clinic Management System{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+        border-left: 4px solid #ef4444;
+    }
+    
+    .stat-card:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transform: translateY(-2px);
+    }
+    
+    .stat-card.red { border-left-color: #ef4444; }
+    .stat-card.blue { border-left-color: #3b82f6; }
+    .stat-card.green { border-left-color: #10b981; }
+    .stat-card.purple { border-left-color: #8b5cf6; }
+    
+    .stat-value {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0.5rem 0;
+        line-height: 1.2;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .stat-icon {
+        display: inline-flex;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        font-size: 1.5rem;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .stat-icon.bg-red-100 { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .stat-icon.bg-blue-100 { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .stat-icon.bg-green-100 { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .stat-icon.bg-purple-100 { background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+    
+    .card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        background-color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        margin: 0;
+    }
+    
+    .empty-state {
+        padding: 2rem 1.5rem;
+        text-align: center;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #e5e7eb;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h5 {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: #6b7280;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .empty-state p {
+        color: #9ca3af;
+        margin: 0 0 1.5rem 0;
+    }
+    
+    .content-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    @media (min-width: 640px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+    
+    .main-content {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    @media (min-width: 1024px) {
+        .main-content {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+    
+    .left-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .donor-item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background-color 0.2s ease;
+    }
+    
+    .donor-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .blood-type-item {
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .blood-type-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .blood-type-badge {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #ef4444;
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        min-width: 60px;
+        text-align: center;
+    }
+    
+    .blood-count {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    .blood-status-badge {
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .bg-green-100 { background-color: #d1fae5; color: #065f46; }
+    .bg-yellow-100 { background-color: #fef3c7; color: #92400e; }
+    .bg-red-100 { background-color: #fee2e2; color: #991b1b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-container py-6">
+    <!-- Page Header -->
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">🩸 Blood Bank Management</h1>
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-2 text-sm">
+                    <li>
+                        <a href="{% url 'dashboard' %}" class="text-blue-600 hover:text-blue-800">
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="text-gray-500">/</li>
+                    <li class="text-gray-500">Blood Bank</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="flex-shrink-0">
+            <button onclick="openDonorModal()"
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                <i class="fas fa-user-plus mr-2"></i>
+                Add New Donor
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <!-- Total Donors -->
+        <div class="stat-card red">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="stat-label">Total Donors</p>
+                    <p class="stat-value">{{ statistics.total_donors }}</p>
+                    <a href="#" onclick="openAllDonorsModal(); return false;" class="text-sm font-medium text-red-600 hover:text-red-500">
+                        View all donors <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+                <div class="stat-icon bg-red-100 text-red-600">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donations Today -->
+        <div class="stat-card blue">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="stat-label">Donations Today</p>
+                    <p class="stat-value">{{ statistics.donations_today }}</p>
+                    <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                        View today's <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+                <div class="stat-icon bg-blue-100 text-blue-600">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donations This Month -->
+        <div class="stat-card green">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="stat-label">This Month</p>
+                    <p class="stat-value">{{ statistics.donations_this_month }}</p>
+                    <a href="#" class="text-sm font-medium text-green-600 hover:text-green-500">
+                        View monthly <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+                <div class="stat-icon bg-green-100 text-green-600">
+                    <i class="fas fa-calendar-week"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Donations -->
+        <div class="stat-card purple">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="stat-label">Total Donations</p>
+                    <p class="stat-value">{{ statistics.total_donations }}</p>
+                    <a href="#" class="text-sm font-medium text-purple-600 hover:text-purple-500">
+                        View history <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+                <div class="stat-icon bg-purple-100 text-purple-600">
+                    <i class="fas fa-trophy"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Left Column -->
+        <div class="left-column">
+            <!-- Recent Donors -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-check text-red-600 mr-2"></i>
+                        Recent Donors
+                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            10
+                        </span>
+                    </h3>
+                    <div class="flex-shrink-0">
+                        <button onclick="openDonorModal()" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <i class="fas fa-plus mr-1"></i> New
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto" style="max-height: 400px;">
+                    <div class="divide-y divide-gray-200">
+                        <!-- Sample donor items - replace with real data -->
+                        <div class="donor-item">
+                            <div class="flex items-center justify-between">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium text-blue-600">John Doe</p>
+                                    <div class="mt-1 flex items-center text-sm text-gray-500 space-x-3">
+                                        <span><i class="fas fa-tint text-red-500 mr-1"></i>A+</span>
+                                        <span><i class="fas fa-phone text-gray-400 mr-1"></i>+1234567890</span>
+                                        <span><i class="fas fa-calendar text-gray-400 mr-1"></i>Today</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        5 donations
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="empty-state" style="display: none;">
+                            <i class="fas fa-users"></i>
+                            <h5>No Donors Yet</h5>
+                            <p>Add your first donor to get started.</p>
+                            <button onclick="openDonorModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                <i class="fas fa-plus mr-2"></i>
+                                Add Donor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="right-column">
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-bolt text-yellow-500 mr-2"></i>
+                        Quick Actions
+                    </h3>
+                </div>
+                <div class="p-4">
+                    <div class="space-y-2">
+                        <button onclick="openDonorModal()" class="w-full flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Add New Donor
+                        </button>
+                        <button onclick="openAllDonorsModal()" class="w-full flex items-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <i class="fas fa-users mr-2"></i>
+                            View All Donors
+                        </button>
+                        <button class="w-full flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <i class="fas fa-download mr-2"></i>
+                            Export Donors
+                        </button>
+                        <button class="w-full flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <i class="fas fa-chart-bar mr-2"></i>
+                            View Reports
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blood Inventory -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-tint text-red-600 mr-2"></i>
+                        Blood Inventory
+                    </h3>
+                </div>
+                <div class="flex-1 overflow-y-auto">
+                    <div class="divide-y divide-gray-200">
+                        {% for blood_type, count in inventory.items %}
+                        <div class="blood-type-item">
+                            <div class="flex items-center space-x-3">
+                                <div class="blood-type-badge">{{ blood_type }}</div>
+                                <div>
+                                    <p class="blood-count">{{ count }}</p>
+                                    <p class="text-xs text-gray-500">units available</p>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="blood-status-badge {% if count == 0 %}bg-red-100{% elif count < 3 %}bg-yellow-100{% else %}bg-green-100{% endif %}">
+                                    {% if count == 0 %}
+                                        Out of Stock
+                                    {% elif count < 3 %}
+                                        Low Stock
+                                    {% else %}
+                                        Available
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Donor Modal (keep existing modal code) -->
+<div id="donorModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Add New Donor</h2>
+            <button class="modal-close" onclick="closeDonorModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">Enter donor details to register them in the system</p>
+            
+            <form id="donorForm" onsubmit="saveDonor(event)">
+                {% csrf_token %}
+                <!-- Keep existing form fields -->
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- All Donors Modal (keep existing modal) -->
+<div id="allDonorsModal" class="modal-overlay">
+    <!-- Keep existing modal content -->
+</div>
+
+<!-- Add modal styles -->
+<style>
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 600px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.modal-close {
+    font-size: 1.5rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: #6b7280;
+}
+
+.modal-close:hover {
+    color: #111827;
+}
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Modal functions
+    function openDonorModal() {
+        document.getElementById('donorModal').classList.add('active');
+    }
+    
+    function closeDonorModal() {
+        document.getElementById('donorModal').classList.remove('active');
+    }
+    
+    function openAllDonorsModal() {
+        document.getElementById('allDonorsModal').classList.add('active');
+    }
+    
+    function closeAllDonorsModal() {
+        document.getElementById('allDonorsModal').classList.remove('active');
+    }
+    
+    // Add other existing JavaScript functions here
+</script>
+{% endblock %}

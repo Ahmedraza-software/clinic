@@ -1,0 +1,379 @@
+{% extends 'operation_theater/base_ot.html' %}
+{% load humanize %}
+
+{% block page_title %}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Stats Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase">Scheduled Today</h6>
+                        <h2 class="mb-0">{{ scheduled_today }}</h2>
+                    </div>
+                    <i class="fas fa-calendar-day fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{% url 'operation_theater:surgery_list' %}?status=scheduled&date=today">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase">Completed Today</h6>
+                        <h2 class="mb-0">{{ completed_today }}</h2>
+                    </div>
+                    <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{% url 'operation_theater:surgery_list' %}?status=completed&date=today">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase">Scheduled This Week</h6>
+                        <h2 class="mb-0">{{ scheduled_this_week }}</h2>
+                    </div>
+                    <i class="fas fa-calendar-week fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{% url 'operation_theater:surgery_list' %}?status=scheduled&date=week">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase">Postponed</h6>
+                        <h2 class="mb-0">{{ postponed }}</h2>
+                    </div>
+                    <i class="fas fa-clock fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-dark stretched-link" href="{% url 'operation_theater:surgery_list' %}?status=postponed">View Details</a>
+                <div class="small text-dark"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Today's OT Schedule -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">Today's OT Schedule</h6>
+                <a href="{% url 'operation_theater:surgery_add' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> New Surgery
+                </a>
+            </div>
+            <div class="card-body">
+                {% if today_schedule %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Procedure</th>
+                                    <th>Surgeon</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for surgery in today_schedule %}
+                                    <tr>
+                                        <td>{{ surgery.start_time|time:"H:i" }} - {{ surgery.end_time|time:"H:i" }}</td>
+                                        <td>
+                                            <a href="{% url 'operation_theater:surgery_detail' surgery.pk %}">
+                                                {{ surgery.patient.user.get_full_name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ surgery.surgery_type.name|default:"General Surgery" }}</td>
+                                        <td>Dr. {{ surgery.surgeon.user.get_short_name }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ surgery.get_status_badge }}">
+                                                {{ surgery.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{% url 'operation_theater:surgery_detail' surgery.pk %}" 
+                                                   class="btn btn-sm btn-outline-primary" 
+                                                   title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'operation_theater:surgery_edit' surgery.pk %}" 
+                                                   class="btn btn-sm btn-outline-secondary" 
+                                                   title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        title="Delete"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteSurgeryModal{{ surgery.id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Delete Confirmation Modal -->
+                                            <div class="modal fade" id="deleteSurgeryModal{{ surgery.id }}" tabindex="-1" 
+                                                 aria-labelledby="deleteSurgeryModalLabel{{ surgery.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="deleteSurgeryModalLabel{{ surgery.id }}">
+                                                                Confirm Deletion
+                                                            </h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            Are you sure you want to delete the surgery for 
+                                                            <strong>{{ surgery.patient.user.get_full_name }}</strong> scheduled for 
+                                                            {{ surgery.scheduled_date }} at {{ surgery.start_time|time:"H:i" }}?
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <form action="{% url 'operation_theater:surgery_delete' surgery.pk %}" method="post" class="d-inline">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-day fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No surgeries scheduled for today.</p>
+                        <a href="{% url 'operation_theater:surgery_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Schedule a Surgery
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Sidebar -->
+    <div class="col-lg-4">
+        <!-- Upcoming Surgeries -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">Upcoming Surgeries</h6>
+            </div>
+            <div class="card-body">
+                {% if upcoming_surgeries %}
+                    <div class="list-group list-group-flush">
+                        {% for surgery in upcoming_surgeries %}
+                            <a href="{% url 'operation_theater:surgery_detail' surgery.pk %}" 
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ surgery.patient.user.get_full_name }}</h6>
+                                    <small>{{ surgery.scheduled_date|naturalday }}</small>
+                                </div>
+                                <p class="mb-1">{{ surgery.surgery_type.name|default:"General Surgery" }}</p>
+                                <small class="text-muted">
+                                    <i class="far fa-clock me-1"></i> {{ surgery.start_time|time:"H:i" }} - {{ surgery.end_time|time:"H:i" }}
+                                    <span class="badge bg-{{ surgery.get_status_badge }} ms-2">
+                                        {{ surgery.get_status_display }}
+                                    </span>
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <div class="text-end mt-2">
+                        <a href="{% url 'operation_theater:surgery_list' %}" class="btn btn-sm btn-outline-primary">
+                            View all surgeries <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No upcoming surgeries scheduled.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- OT Utilization -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">OT Utilization - This Week</h6>
+            </div>
+            <div class="card-body">
+                {% if ot_utilization %}
+                    <div class="chart-pie">
+                        <canvas id="otUtilizationChart"></canvas>
+                    </div>
+                    <div class="mt-4 small">
+                        <span class="me-2">
+                            <i class="fas fa-circle text-primary"></i> Scheduled
+                        </span>
+                        <span class="me-2">
+                            <i class="fas fa-circle text-success"></i> Completed
+                        </span>
+                        <span>
+                            <i class="fas fa-circle text-warning"></i> Available
+                        </span>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No OT utilization data available for this week.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row
+
+<!-- Recent Consumables Usage -->
+<div class="col-12">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold">Recent Consumables Usage</h6>
+            <a href="#" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-download me-1"></i> Export
+            </a>
+        </div>
+        <div class="card-body">
+            {% if recent_consumables %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Used In</th>
+                                <th>Quantity Used</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_consumables %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.get_category_display|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'operation_theater:surgery_detail' item.surgery.pk %}">
+                                            {{ item.surgery.surgery_type.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ item.quantity }} {{ item.unit }}</td>
+                                    <td>{{ item.used_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-success">Used</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-boxes fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No recent consumables usage recorded.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% if ot_utilization %}
+<script>
+    // OT Utilization Chart
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('otUtilizationChart').getContext('2d');
+        const otNames = {{ ot_names|safe }};
+        const scheduledData = {{ scheduled_data|safe }};
+        const completedData = {{ completed_data|safe }};
+        const availableData = {{ available_data|safe }};
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: otNames,
+                datasets: [
+                    {
+                        label: 'Scheduled',
+                        backgroundColor: '#4e73df',
+                        data: scheduledData,
+                    },
+                    {
+                        label: 'Completed',
+                        backgroundColor: '#1cc88a',
+                        data: completedData,
+                    },
+                    {
+                        label: 'Available',
+                        backgroundColor: '#f6c23e',
+                        data: availableData,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

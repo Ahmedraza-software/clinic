@@ -1,0 +1,2495 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Blood Bank Management{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* Modern Blood Bank Styles */
+.blood-bank-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 1rem;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+/* Header Section */
+.page-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
+    display: inline-block;
+    max-width: 320px;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+
+.page-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    position: relative;
+    z-index: 1;
+}
+
+.page-subtitle {
+    font-size: 0.6875rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0.125rem 0 0 0;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+    line-height: 1.2;
+}
+
+.header-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Quick Stats Section */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.stat-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: #dc2626;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+/* Action Buttons */
+.actions-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.action-btn {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    color: #374151;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    border-color: #dc2626;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.action-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: #dc2626;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.action-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #111827;
+}
+
+.action-subtitle {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+/* Main Grid */
+.main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.inventory-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.blood-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.blood-type-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.blood-type-card.available {
+    border-color: #10b981;
+    border-left: 4px solid #10b981;
+}
+
+.blood-type-card.low-stock {
+    border-color: #f59e0b;
+    border-left: 4px solid #f59e0b;
+}
+
+.blood-type-card.out-of-stock {
+    border-color: #ef4444;
+    border-left: 4px solid #ef4444;
+}
+
+.blood-type-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.blood-type {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.blood-quantity {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+}
+
+.blood-unit {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.blood-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.blood-status.available {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.blood-status.low {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.blood-status.critical {
+    background: #fee2e2;
+    color: #991b1b;
+}
+/* Transfers Sidebar */
+.transfers-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.transfers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.transfer-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.transfer-item:hover {
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.transfer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.patient-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.emergency-badge {
+    background: #dc2626;
+    color: white;
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    text-transform: uppercase;
+}
+
+.transfer-details {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.transfer-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 500;
+}
+
+.transfer-detail i {
+    width: 0.875rem;
+    text-align: center;
+    color: #9ca3af;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .stats-section,
+    .actions-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .blood-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.stat-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--stat-gradient);
+}
+
+.stat-card.donors { --stat-gradient: linear-gradient(90deg, #dc2626, #f87171); }
+.stat-card.today { --stat-gradient: linear-gradient(90deg, #2563eb, #60a5fa); }
+.stat-card.month { --stat-gradient: linear-gradient(90deg, #059669, #34d399); }
+.stat-card.total { --stat-gradient: linear-gradient(90deg, #7c3aed, #a78bfa); }
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.stat-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    color: white;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-icon.donors { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+.stat-icon.today { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.stat-icon.month { background: linear-gradient(135deg, #059669, #047857); }
+.stat-icon.total { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+
+.stat-content {
+    text-align: left;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+    margin-bottom: 0.125rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.stat-label {
+    font-size: 0.625rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Ultra Compact Action Buttons */
+.actions-section {
+    margin-bottom: 0.75rem;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    text-decoration: none;
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    text-decoration: none;
+    color: white;
+}
+
+.action-btn.add-donor:hover {
+    border-color: rgba(220, 38, 38, 0.5);
+    box-shadow: 
+        0 8px 25px rgba(220, 38, 38, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.action-btn.view-donors:hover {
+    border-color: rgba(37, 99, 235, 0.5);
+    box-shadow: 
+        0 8px 25px rgba(37, 99, 235, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.action-btn.new-transfer:hover {
+    border-color: rgba(5, 150, 105, 0.5);
+    box-shadow: 
+        0 8px 25px rgba(5, 150, 105, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.action-btn.view-reports:hover {
+    border-color: rgba(124, 58, 237, 0.5);
+    box-shadow: 
+        0 8px 25px rgba(124, 58, 237, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.action-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.action-btn:hover .action-icon {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.action-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.action-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.action-subtitle {
+    font-size: 0.625rem;
+    opacity: 0.7;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.1;
+}
+
+/* Ultra Compact Main Grid */
+.main-grid {
+    display: grid;
+    grid-template-columns: 2fr 350px;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Ultra Compact Blood Inventory */
+.inventory-section {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.375rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.blood-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.5rem;
+}
+
+.blood-type-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.blood-type-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--blood-gradient);
+}
+
+.blood-type-card.available { 
+    --blood-gradient: linear-gradient(90deg, #059669, #34d399);
+}
+
+.blood-type-card.low-stock { 
+    --blood-gradient: linear-gradient(90deg, #d97706, #fbbf24);
+}
+
+.blood-type-card.out-of-stock { 
+    --blood-gradient: linear-gradient(90deg, #dc2626, #f87171);
+}
+
+.blood-type-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.blood-type {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.25rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.blood-quantity {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.125rem;
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.blood-unit {
+    font-size: 0.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.blood-status {
+    font-size: 0.5rem;
+    font-weight: 600;
+    padding: 0.125rem 0.25rem;
+    border-radius: 6px;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.25px;
+}
+
+.blood-units {
+    font-size: 0.625rem;
+    color: #7f1d1d;
+    font-weight: 500;
+    margin-bottom: 0.375rem;
+}
+
+.blood-status {
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.blood-status.available { background: #d1fae5; color: #065f46; }
+.blood-status.low { background: #fef3c7; color: #92400e; }
+.blood-status.critical { background: #fee2e2; color: #991b1b; }
+
+/* Ultra Compact Transfers Section */
+.transfers-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    max-width: 350px;
+}
+
+.transfers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.transfer-item {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.transfer-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.transfer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.375rem;
+}
+
+.patient-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.emergency-badge {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+    padding: 0.125rem 0.375rem;
+    border-radius: 8px;
+    font-size: 0.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25px;
+}
+
+.transfer-details {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+    font-size: 0.625rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.transfer-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 500;
+}
+
+/* Compact Action Buttons */
+.action-section {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.action-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2);
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.2);
+}
+
+.action-btn.primary:hover {
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #6b7280;
+}
+
+.empty-state p {
+    font-size: 0.875rem;
+}
+
+/* Animations */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.bb-fade-init { opacity: 0; transform: translateY(12px); }
+.bb-fade-in { opacity: 1; transform: translateY(0); animation: fadeUp 420ms ease forwards; }
+
+/* Chart Responsive Styles */
+.chart-container {
+    position: relative;
+    height: 200px;
+    width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .main-grid {
+        grid-template-columns: 1fr 260px;
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stats-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Blood Flow Summary responsive */
+    .inventory-card div[style*="grid-template-columns: 1fr 300px"] {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .chart-container {
+        height: 180px;
+    }
+}
+
+@media (max-width: 768px) {
+    .blood-bank-container {
+        padding: 0.5rem;
+    }
+    
+    .page-header {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .page-title {
+        font-size: 1.125rem;
+    }
+    
+    .stats-section {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .blood-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .action-section {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.375rem;
+    }
+    
+    .action-btn {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.625rem;
+    }
+    
+    .chart-container {
+        height: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .blood-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Blood Transfer Modal Styling - Matching Patients Page */
+.rounded-12 {
+    border-radius: 12px;
+}
+
+.rounded-8 {
+    border-radius: 8px;
+}
+
+#transferModal .search-input {
+    flex: 1;
+    padding: 0.625rem 0.875rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: #f9fafb;
+}
+
+#transferModal .search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+#transferModal .search-input::placeholder {
+    color: #9ca3af;
+}
+
+#transferModal .btn-search {
+    padding: 0.875rem 1.5rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#transferModal .btn-search:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Modal sections styling */
+#transferModal .bg-white {
+    border: 1px solid #e5e7eb;
+}
+
+#transferModal .bg-white:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+/* Emergency checkbox styling */
+#transferModal .bg-red-50 {
+    transition: all 0.2s ease;
+}
+
+#transferModal .bg-red-50:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-area flex-1 flex flex-col overflow-hidden">
+    <div class="blood-bank-container">
+        
+        <!-- Page Header -->
+        <div class="page-header bb-fade-init">
+            <h1 class="page-title">
+                <div class="header-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+                Blood Bank Management
+            </h1>
+            <p class="page-subtitle">Manage blood inventory, donors, and transfers efficiently</p>
+        </div>
+
+        <!-- Hero Section with Blood Flow Visualization -->
+        <div class="bb-fade-init" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; color: white; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; right: 0; width: 200px; height: 200px; background: radial-gradient(circle, rgba(220, 38, 38, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+            <div style="position: relative; z-index: 2;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Blood Bank Overview</h2>
+                        <p style="color: rgba(255, 255, 255, 0.8); margin: 0;">Real-time inventory and donation tracking</p>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="text-align: center;">
+                            <div id="units-in" style="font-size: 2rem; font-weight: 700; color: #10b981;">{{ total_units_in|default:55 }}</div>
+                            <div style="font-size: 0.875rem; opacity: 0.8;">Units In</div>
+                        </div>
+                        <div style="width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
+                        <div style="text-align: center;">
+                            <div id="units-out" style="font-size: 2rem; font-weight: 700; color: #ef4444;">{{ total_units_out|default:22 }}</div>
+                            <div style="font-size: 0.875rem; opacity: 0.8;">Units Out</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="newTransfer()" style="background: #dc2626; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                        <i class="fas fa-exchange-alt"></i>
+                        New Transfer
+                    </button>
+                    <button onclick="addNewDonor()" style="background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem;" onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                        <i class="fas fa-user-plus"></i>
+                        Add Donor
+                    </button>
+                    <a href="{% url 'blood_bank:donors_list' %}" style="background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem; text-decoration: none;" onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                        <i class="fas fa-users"></i>
+                        View Donors
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blood Type Inventory - Circular Layout -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            
+            <!-- Blood Types Circle -->
+            <div class="bb-fade-init" style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: relative;">
+                <h3 style="font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 2rem; text-align: center;">Blood Type Availability</h3>
+                
+                <div style="position: relative; width: 300px; height: 300px; margin: 0 auto;">
+                    <!-- Center circle -->
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                        BLOOD<br>BANK
+                    </div>
+                    
+                    <!-- Blood type circles positioned around center -->
+                    {% for blood_type, units in inventory.items %}
+                    {% with forloop.counter0 as index %}
+                    <div class="bb-fade-init" style="position: absolute; 
+                        {% if index == 0 %}top: 0; left: 50%; transform: translateX(-50%);{% endif %}
+                        {% if index == 1 %}top: 15%; right: 15%; transform: translate(50%, -50%);{% endif %}
+                        {% if index == 2 %}top: 50%; right: 0; transform: translateY(-50%);{% endif %}
+                        {% if index == 3 %}bottom: 15%; right: 15%; transform: translate(50%, 50%);{% endif %}
+                        {% if index == 4 %}bottom: 0; left: 50%; transform: translateX(-50%);{% endif %}
+                        {% if index == 5 %}bottom: 15%; left: 15%; transform: translate(-50%, 50%);{% endif %}
+                        {% if index == 6 %}top: 50%; left: 0; transform: translateY(-50%);{% endif %}
+                        {% if index == 7 %}top: 15%; left: 15%; transform: translate(-50%, -50%);{% endif %}
+                        width: 70px; height: 70px; 
+                        {% if units == 0 %}background: linear-gradient(135deg, #ef4444, #dc2626);{% elif units < 3 %}background: linear-gradient(135deg, #f59e0b, #d97706);{% else %}background: linear-gradient(135deg, #10b981, #059669);{% endif %}
+                        border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);"
+                        onclick="newTransfer('{{ blood_type }}')"
+                        onmouseover="this.style.transform += ' scale(1.1)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.3)'"
+                        onmouseout="this.style.transform = this.style.transform.replace(' scale(1.1)', ''); this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.2)'">
+                        <div style="font-size: 0.875rem; font-weight: 700;">{{ blood_type }}</div>
+                        <div style="font-size: 1.25rem; font-weight: 700;">{{ units }}</div>
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Stats & Recent Activity -->
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div class="bb-fade-init" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <h4 style="font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 1rem;">Today's Stats</h4>
+                    <div style="space-y: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <span style="color: #6b7280; font-size: 0.875rem;">Total Donors</span>
+                            <span id="bb-total-donors" style="font-weight: 600; color: #111827;">{{ statistics.total_donors|default:6 }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <span style="color: #6b7280; font-size: 0.875rem;">Donations Today</span>
+                            <span id="bb-donations-today" style="font-weight: 600; color: #10b981;">{{ statistics.donations_today|default:0 }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <span style="color: #6b7280; font-size: 0.875rem;">This Month</span>
+                            <span id="bb-donations-month" style="font-weight: 600; color: #3b82f6;">{{ statistics.donations_this_month|default:6 }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #6b7280; font-size: 0.875rem;">Total Units</span>
+                            <span id="bb-total-units" style="font-weight: 600; color: #7c3aed;">{{ statistics.total_donations|default:6 }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bb-fade-init" style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); flex-grow: 1;">
+                    <h4 style="font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 1rem;">Quick Actions</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button onclick="viewReports()" style="padding: 0.5rem 1rem; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; font-size: 0.875rem; cursor: pointer; transition: all 0.2s ease; text-align: left;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <i class="fas fa-chart-bar" style="margin-right: 0.5rem; color: #6b7280;"></i>
+                            View Reports
+                        </button>
+                        <button onclick="viewAllTransfers()" style="padding: 0.5rem 1rem; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; font-size: 0.875rem; cursor: pointer; transition: all 0.2s ease; text-align: left;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            <i class="fas fa-list" style="margin-right: 0.5rem; color: #6b7280;"></i>
+                            All Transfers
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity & Flow Timeline -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            
+            <!-- All Transfers - Modern Timeline -->
+            <div class="bb-fade-init" style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #111827; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                        <div style="width: 8px; height: 8px; background: #dc2626; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        Recent Transfers
+                    </h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{% url 'blood_bank:transfers_list' %}" style="background: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem; text-decoration: none;" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                            <i class="fas fa-list"></i>
+                            View All
+                        </a>
+                        <button onclick="newTransfer()" style="background: #dc2626; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                            <i class="fas fa-plus" style="margin-right: 0.25rem;"></i>
+                            New Transfer
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Timeline -->
+                <div style="position: relative;">
+                    <!-- Timeline line -->
+                    <div style="position: absolute; left: 1rem; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, #dc2626, #f87171, #fecaca); opacity: 0.3;"></div>
+                    
+                    <!-- Transfer Items -->
+                    {% if transfers %}
+                        {% for transfer in transfers %}
+                        <div class="bb-fade-init" style="position: relative; padding-left: 3rem; margin-bottom: 1.5rem;">
+                            <!-- Timeline dot -->
+                            <div style="position: absolute; left: 0.75rem; top: 0.5rem; width: 0.5rem; height: 0.5rem; background: {% if transfer.is_emergency %}#ef4444{% else %}#10b981{% endif %}; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px {% if transfer.is_emergency %}#ef4444{% else %}#10b981{% endif %};"></div>
+                            
+                            <div style="background: #f8fafc; border-radius: 12px; padding: 1rem; border-left: 3px solid {% if transfer.is_emergency %}#ef4444{% else %}#10b981{% endif %};">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <div style="font-weight: 600; color: #111827; font-size: 0.875rem;">{{ transfer.patient_name }}</div>
+                                    {% if transfer.is_emergency %}
+                                    <div style="background: #fee2e2; color: #991b1b; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.625rem; font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 0.25rem;">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Emergency
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.75rem; color: #6b7280;">
+                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                        <div style="width: 1.5rem; height: 1.5rem; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.625rem;">{{ transfer.blood_type }}</div>
+                                        <span>{{ transfer.units }} units</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                        <i class="fas fa-user-md" style="color: #9ca3af;"></i>
+                                        <span>{{ transfer.doctor_name }}</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                        <i class="fas fa-clock" style="color: #9ca3af;"></i>
+                                        <span>{{ transfer.transfer_date }} at {{ transfer.transfer_time|time:"H:i" }}</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                        <i class="fas fa-hospital" style="color: #9ca3af;"></i>
+                                        <span>{{ transfer.department }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <!-- Sample transfer data -->
+                    <div style="position: relative; padding-left: 3rem; margin-bottom: 1.5rem;">
+                        <div style="position: absolute; left: 0.75rem; top: 0.5rem; width: 0.5rem; height: 0.5rem; background: #ef4444; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px #ef4444;"></div>
+                        
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 1rem; border-left: 3px solid #ef4444;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <div style="font-weight: 600; color: #111827; font-size: 0.875rem;">admin_demo admin</div>
+                                <div style="background: #fee2e2; color: #991b1b; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.625rem; font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 0.25rem;">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Emergency
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.75rem; color: #6b7280;">
+                                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                    <div style="width: 1.5rem; height: 1.5rem; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.625rem;">AB+</div>
+                                    <span>10 units</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                    <i class="fas fa-user-md" style="color: #9ca3af;"></i>
+                                    <span>Dr. Ayesha Khan</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                    <i class="fas fa-clock" style="color: #9ca3af;"></i>
+                                    <span>2025-11-07 at 02:37</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                    <i class="fas fa-hospital" style="color: #9ca3af;"></i>
+                                    <span>Radiology</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- New Blood Transfer Modal -->
+<div id="transferModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-4 mx-auto p-0 w-11/12 md:w-11/12 lg:w-11/12 xl:w-10/12 max-w-7xl">
+        <div class="bg-white rounded-12 shadow-xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="page-header" style="margin-bottom: 0; border-radius: 0; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="page-title">
+                            <div class="header-icon">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            New Blood Transfer
+                        </h1>
+                        <p class="page-subtitle">Process blood requests and manage transfers efficiently</p>
+                    </div>
+                    <button onclick="closeTransferModal()" class="text-white hover:text-gray-200 transition-colors p-2 rounded-md hover:bg-white hover:bg-opacity-20">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Modal Content -->
+            <div class="p-4 bg-gray-50">
+                <form id="transferForm" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <!-- Main Form Grid - Two Columns -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        
+                        <!-- Left Column -->
+                        <div class="space-y-4">
+                            <!-- Patient & Doctor Section -->
+                            <div class="bg-white rounded-8 p-4 shadow-sm">
+                                <h3 class="text-base font-semibold text-gray-900 mb-3 flex items-center">
+                                    <i class="fas fa-user-md text-blue-600 mr-2"></i>
+                                    Patient & Doctor Information
+                                </h3>
+                                <div class="space-y-3">
+                                    <!-- Patient Selection -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">Patient *</label>
+                                        <select name="patient_id" required
+                                                class="search-input w-full"
+                                                onchange="updatePatientInfo(this)">
+                                            <option value="">Select Patient</option>
+                                            {% for patient in patients %}
+                                            <option value="{{ patient.id }}" 
+                                                    data-name="{{ patient.user.get_full_name }}"
+                                                    data-blood-group="{{ patient.blood_group|default:'Unknown' }}"
+                                                    data-age="{{ patient.age }}"
+                                                    data-email="{{ patient.user.email }}">
+                                                {{ patient.user.get_full_name }} - {{ patient.blood_group|default:'Unknown' }} (Age: {{ patient.age }})
+                                            </option>
+                                            {% empty %}
+                                            <option value="" disabled>No patients available</option>
+                                            {% endfor %}
+                                        </select>
+                                        <input type="hidden" name="patient_name" id="selected_patient_name">
+                                    </div>
+                                    
+                                    <!-- Doctor Selection -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">Doctor *</label>
+                                        <select name="doctor_id" required
+                                                class="search-input w-full"
+                                                onchange="updateDoctorInfo(this)">
+                                            <option value="">Select Doctor</option>
+                                            {% for doctor in doctors %}
+                                            <option value="{{ doctor.id }}" 
+                                                    data-name="Dr. {{ doctor.user.get_full_name }}"
+                                                    data-specialization="{% for spec in doctor.specialization.all %}{{ spec.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                                                Dr. {{ doctor.user.get_full_name }} 
+                                                {% if doctor.specialization.all %}
+                                                    - {% for spec in doctor.specialization.all %}{{ spec.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                                {% endif %}
+                                            </option>
+                                            {% empty %}
+                                            <option value="" disabled>No doctors available</option>
+                                            {% endfor %}
+                                        </select>
+                                        <input type="hidden" name="doctor_name" id="selected_doctor_name">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Blood Information Section -->
+                            <div class="bg-white rounded-8 p-4 shadow-sm">
+                                <h3 class="text-base font-semibold text-gray-900 mb-3 flex items-center">
+                                    <i class="fas fa-tint text-red-600 mr-2"></i>
+                                    Blood Transfer Details
+                                </h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">Blood Type *</label>
+                                        <select name="blood_type" required class="search-input w-full">
+                                            <option value="">Select Blood Type</option>
+                                            <option value="A+">A+</option>
+                                            <option value="A-">A-</option>
+                                            <option value="B+">B+</option>
+                                            <option value="B-">B-</option>
+                                            <option value="AB+">AB+</option>
+                                            <option value="AB-">AB-</option>
+                                            <option value="O+">O+</option>
+                                            <option value="O-">O-</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">Units Required *</label>
+                                        <input type="number" name="units" min="1" max="10" required
+                                               class="search-input w-full"
+                                               placeholder="Number of units">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column -->
+                        <div class="space-y-4">
+                            <!-- Department & Priority Section -->
+                            <div class="bg-white rounded-8 p-4 shadow-sm">
+                                <h3 class="text-base font-semibold text-gray-900 mb-3 flex items-center">
+                                    <i class="fas fa-hospital text-green-600 mr-2"></i>
+                                    Department & Priority
+                                </h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">Department *</label>
+                                        <select name="department" required class="search-input w-full">
+                                            <option value="">Select Department</option>
+                                            <option value="Emergency">Emergency</option>
+                                            <option value="Surgery">Surgery</option>
+                                            <option value="ICU">ICU</option>
+                                            <option value="Cardiology">Cardiology</option>
+                                            <option value="Oncology">Oncology</option>
+                                            <option value="Radiology">Radiology</option>
+                                            <option value="General Ward">General Ward</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">Priority *</label>
+                                        <select name="priority" required class="search-input w-full">
+                                            <option value="routine">Routine</option>
+                                            <option value="urgent">Urgent</option>
+                                            <option value="emergency">Emergency</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Additional Information Section -->
+                            <div class="bg-white rounded-8 p-4 shadow-sm">
+                                <h3 class="text-base font-semibold text-gray-900 mb-3 flex items-center">
+                                    <i class="fas fa-notes-medical text-purple-600 mr-2"></i>
+                                    Additional Information
+                                </h3>
+                                
+                                <!-- Notes -->
+                                <div class="mb-3">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Notes (Optional)</label>
+                                    <textarea name="notes" rows="2"
+                                              class="search-input w-full resize-none"
+                                              placeholder="Additional notes or special instructions"></textarea>
+                                </div>
+                                
+                                <!-- Emergency Checkbox -->
+                                <div class="flex items-center p-3 bg-red-50 border-2 border-red-200 rounded-8">
+                                    <input type="checkbox" name="is_emergency" id="emergency_checkbox"
+                                           class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                                    <label for="emergency_checkbox" class="ml-2 text-sm font-semibold text-red-700 cursor-pointer">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                        Mark as Emergency Transfer
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Patient Info Display - Full Width -->
+                    <div id="patient_info_display" class="bg-blue-50 border-2 border-blue-200 rounded-8 p-3 hidden">
+                        <div class="text-sm text-blue-800">
+                            <div class="font-semibold mb-1">Selected Patient Details:</div>
+                            <div id="patient_details" class="text-xs"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Blood Inventory Display - Full Width -->
+                    <div id="blood_inventory_display" class="bg-white border-2 border-gray-200 rounded-8 p-4 hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-base font-semibold text-gray-900 flex items-center">
+                                <i class="fas fa-warehouse text-purple-600 mr-2"></i>
+                                Blood Inventory Status
+                            </h3>
+                            <div id="inventory_refresh_btn" class="text-xs text-gray-500 cursor-pointer hover:text-purple-600" onclick="refreshInventoryDisplay()">
+                                <i class="fas fa-sync-alt mr-1"></i>
+                                Refresh
+                            </div>
+                        </div>
+                        
+                        <!-- Patient's Blood Type Inventory -->
+                        <div id="patient_blood_inventory" class="mb-4">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                        
+                        <!-- Compatible Blood Types -->
+                        <div id="compatible_blood_types" class="hidden">
+                            <div class="text-sm font-semibold text-gray-700 mb-2">Compatible Blood Types Available:</div>
+                            <div id="compatible_inventory_grid" class="grid grid-cols-4 gap-2">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <!-- Emergency Notice -->
+                        <div id="emergency_notice" class="hidden bg-red-50 border border-red-200 rounded-6 p-3 mt-3">
+                            <div class="flex items-center text-red-800">
+                                <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                                <span class="text-sm font-semibold">Emergency Protocol: Contact blood bank immediately for urgent requests</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="bg-gray-100 px-4 py-3 flex justify-end space-x-3 border-t border-gray-200">
+                <button onclick="closeTransferModal()" 
+                    class="px-4 py-2 bg-gray-500 text-white font-semibold rounded-8 hover:bg-gray-600 transition-all duration-200 transform hover:scale-105">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancel
+                </button>
+                <button onclick="submitTransfer()" 
+                    class="btn-search">
+                    <i class="fas fa-exchange-alt mr-2"></i>
+                    Create Transfer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Donor Modal -->
+<div id="donorModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-user-plus text-red-600 mr-2"></i>
+                    Add New Donor
+                </h3>
+                <button onclick="closeDonorModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Content -->
+            <form id="donorForm" class="mt-4">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Personal Information -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                        <input type="text" name="full_name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                               placeholder="Enter full name">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Age *</label>
+                        <input type="number" name="age" min="18" max="65" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                               placeholder="Age">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
+                        <select name="gender" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="">Select Gender</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                            <option value="O">Other</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                        <input type="tel" name="phone" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                               placeholder="Phone number">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" name="email"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                               placeholder="Email address">
+                    </div>
+                    
+                    <!-- Medical Information -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Blood Group *</label>
+                        <select name="blood_group" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg) *</label>
+                        <input type="number" name="weight" min="45" max="200" step="0.1" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                               placeholder="Weight in kg">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Donation Count *</label>
+                        <input type="number" name="donation_count" min="1" max="10" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                               placeholder="Number of units" value="1">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Donation Type</label>
+                        <select name="donation_type"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="whole">Whole Blood</option>
+                            <option value="plasma">Plasma</option>
+                            <option value="platelets">Platelets</option>
+                            <option value="red_cells">Red Blood Cells</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Donation Date</label>
+                        <input type="date" name="donation_date"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Donation Time</label>
+                        <input type="time" name="donation_time"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+                </div>
+                
+                <!-- Address -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                    <textarea name="address" rows="2"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                              placeholder="Full address"></textarea>
+                </div>
+                
+                <!-- Medical Notes -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Medical Notes</label>
+                    <textarea name="medical_notes" rows="2"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                              placeholder="Any medical conditions or notes"></textarea>
+                </div>
+            </form>
+            
+            <!-- Modal Footer -->
+            <div class="flex justify-end pt-4 border-t border-gray-200 mt-6 space-x-3">
+                <button onclick="closeDonorModal()" 
+                    class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="submitDonor()" 
+                    class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Add Donor
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addNewDonor() {
+    document.getElementById('donorModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDonorModal() {
+    document.getElementById('donorModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('donorForm').reset();
+}
+
+function submitDonor() {
+    const form = document.getElementById('donorForm');
+    const formData = new FormData(form);
+    
+    // Basic validation
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('button[onclick="submitDonor()"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+    submitBtn.disabled = true;
+    
+    // Set default date and time if not provided
+    if (!formData.get('donation_date')) {
+        formData.set('donation_date', new Date().toISOString().split('T')[0]);
+    }
+    if (!formData.get('donation_time')) {
+        formData.set('donation_time', new Date().toTimeString().split(' ')[0].substring(0, 5));
+    }
+    
+    // Submit to backend API
+    fetch('/blood-bank/api/add-donor/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showNotification(`Donor registered successfully!\n\nName: ${data.donor.full_name}\nBlood Group: ${data.donor.blood_group}\nDonation Count: ${data.donor.donation_count} units`, 'success');
+            
+            // Update statistics
+            updateStatistics(data.statistics);
+            
+            // Update blood inventory
+            updateBloodInventory(data.inventory);
+            
+            // Close modal and reset form
+            closeDonorModal();
+        } else {
+            showNotification(data.message || 'Error adding donor', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function updateStatistics(stats) {
+    // Update statistics cards
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        const numberElement = card.querySelector('.stat-number');
+        const labelElement = card.querySelector('.stat-label');
+        
+        if (numberElement && labelElement) {
+            const label = labelElement.textContent.trim();
+            
+            if (label === 'Total Donors') {
+                numberElement.textContent = stats.total_donors;
+            } else if (label === 'Donations Today') {
+                numberElement.textContent = stats.donations_today;
+            } else if (label === 'This Month') {
+                numberElement.textContent = stats.donations_this_month;
+            } else if (label === 'Total Donations') {
+                numberElement.textContent = stats.total_donations;
+            }
+        }
+    });
+}
+
+function viewAllDonors() {
+    // Open donors list in a new tab
+    window.open('{% url "blood_bank:donors_list" %}', '_blank');
+}
+
+function newTransfer() {
+    document.getElementById('transferModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeTransferModal() {
+    document.getElementById('transferModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('transferForm').reset();
+    
+    // Reset hidden fields
+    document.getElementById('selected_patient_name').value = '';
+    document.getElementById('selected_doctor_name').value = '';
+    
+    // Hide patient info display
+    document.getElementById('patient_info_display').classList.add('hidden');
+    document.getElementById('patient_details').innerHTML = '';
+}
+
+function updatePatientInfo(selectElement) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const patientName = selectedOption.getAttribute('data-name');
+    const bloodGroup = selectedOption.getAttribute('data-blood-group');
+    const age = selectedOption.getAttribute('data-age');
+    const email = selectedOption.getAttribute('data-email');
+    
+    // Update hidden field
+    document.getElementById('selected_patient_name').value = patientName || '';
+    
+    // Show patient details
+    const patientInfoDisplay = document.getElementById('patient_info_display');
+    const patientDetails = document.getElementById('patient_details');
+    
+    if (patientName && bloodGroup) {
+        patientDetails.innerHTML = `
+            <div><strong>Name:</strong> ${patientName}</div>
+            <div><strong>Blood Group:</strong> ${bloodGroup}</div>
+            <div><strong>Age:</strong> ${age} years</div>
+            <div><strong>Email:</strong> ${email}</div>
+        `;
+        patientInfoDisplay.classList.remove('hidden');
+        
+        // Auto-select blood type if patient has one
+        if (bloodGroup && bloodGroup !== 'Unknown') {
+            const bloodTypeSelect = document.querySelector('select[name="blood_type"]');
+            if (bloodTypeSelect) {
+                bloodTypeSelect.value = bloodGroup;
+            }
+            
+            // Show blood inventory for this blood type
+            showBloodInventory(bloodGroup);
+        }
+    } else {
+        // Hide patient details and inventory
+        patientInfoDisplay.classList.add('hidden');
+        patientDetails.innerHTML = '';
+        hideBloodInventory();
+    }
+}
+
+function updateDoctorInfo(selectElement) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const doctorName = selectedOption.getAttribute('data-name');
+    
+    // Update hidden field
+    document.getElementById('selected_doctor_name').value = doctorName || '';
+}
+
+function showBloodInventory(bloodType) {
+    if (!bloodType || bloodType === 'Unknown') {
+        hideBloodInventory();
+        return;
+    }
+    
+    // Show loading state
+    const inventoryDisplay = document.getElementById('blood_inventory_display');
+    const patientBloodInventory = document.getElementById('patient_blood_inventory');
+    
+    patientBloodInventory.innerHTML = `
+        <div class="flex items-center justify-center p-4">
+            <i class="fas fa-spinner fa-spin text-gray-500 mr-2"></i>
+            <span class="text-gray-500">Loading blood inventory...</span>
+        </div>
+    `;
+    inventoryDisplay.classList.remove('hidden');
+    
+    // Fetch blood compatibility data
+    fetch(`/blood-bank/api/compatibility/?blood_type=${encodeURIComponent(bloodType)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            displayBloodInventoryData(data);
+        })
+        .catch(error => {
+            console.error('Error fetching blood inventory:', error);
+            patientBloodInventory.innerHTML = `
+                <div class="flex items-center p-4 bg-red-50 border border-red-200 rounded-6">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                    <span class="text-red-800">Error loading blood inventory</span>
+                </div>
+            `;
+        });
+}
+
+function hideBloodInventory() {
+    const inventoryDisplay = document.getElementById('blood_inventory_display');
+    inventoryDisplay.classList.add('hidden');
+}
+
+function displayBloodInventoryData(data) {
+    const patientBloodInventory = document.getElementById('patient_blood_inventory');
+    const compatibleBloodTypes = document.getElementById('compatible_blood_types');
+    const compatibleInventoryGrid = document.getElementById('compatible_inventory_grid');
+    const emergencyNotice = document.getElementById('emergency_notice');
+    
+    // Display patient's blood type inventory
+    const statusClass = data.status === 'available' ? 'bg-green-50 border-green-200' : 
+                       data.status === 'low_stock' ? 'bg-yellow-50 border-yellow-200' : 
+                       'bg-red-50 border-red-200';
+    
+    const statusIcon = data.status === 'available' ? 'fa-check-circle text-green-600' : 
+                      data.status === 'low_stock' ? 'fa-exclamation-triangle text-yellow-600' : 
+                      'fa-times-circle text-red-600';
+    
+    const statusText = data.status === 'available' ? 'text-green-800' : 
+                      data.status === 'low_stock' ? 'text-yellow-800' : 
+                      'text-red-800';
+    
+    patientBloodInventory.innerHTML = `
+        <div class="p-4 ${statusClass} border rounded-8">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center">
+                    <i class="fas ${statusIcon} mr-2"></i>
+                    <span class="font-semibold ${statusText}">Patient's Blood Type: ${data.patient_blood_type}</span>
+                </div>
+                <div class="text-2xl font-bold ${statusText}">${data.patient_inventory} units</div>
+            </div>
+            <div class="text-sm ${statusText}">${data.message}</div>
+        </div>
+    `;
+    
+    // Display compatible blood types if patient's type is not available or low
+    if (data.status !== 'available' || Object.keys(data.compatible_types).length > 1) {
+        compatibleInventoryGrid.innerHTML = '';
+        
+        Object.entries(data.compatible_types).forEach(([type, units]) => {
+            if (type !== data.patient_blood_type) {
+                const cardClass = units === 0 ? 'bg-gray-100 border-gray-300' : 
+                                 units < 3 ? 'bg-yellow-100 border-yellow-300' : 
+                                 'bg-green-100 border-green-300';
+                
+                const textClass = units === 0 ? 'text-gray-600' : 
+                                 units < 3 ? 'text-yellow-800' : 
+                                 'text-green-800';
+                
+                compatibleInventoryGrid.innerHTML += `
+                    <div class="p-3 ${cardClass} border rounded-6 text-center">
+                        <div class="font-semibold text-sm ${textClass}">${type}</div>
+                        <div class="text-lg font-bold ${textClass}">${units}</div>
+                        <div class="text-xs ${textClass}">units</div>
+                    </div>
+                `;
+            }
+        });
+        
+        compatibleBloodTypes.classList.remove('hidden');
+    } else {
+        compatibleBloodTypes.classList.add('hidden');
+    }
+    
+    // Show emergency notice if total compatible units are low
+    if (data.total_compatible_units < 5) {
+        emergencyNotice.classList.remove('hidden');
+    } else {
+        emergencyNotice.classList.add('hidden');
+    }
+}
+
+function refreshInventoryDisplay() {
+    const bloodTypeSelect = document.querySelector('select[name="blood_type"]');
+    if (bloodTypeSelect && bloodTypeSelect.value) {
+        showBloodInventory(bloodTypeSelect.value);
+    }
+}
+
+function updateBloodFlowTotals(totals) {
+    // Update Units Received
+    const unitsInElement = document.getElementById('total_units_in');
+    if (unitsInElement) {
+        unitsInElement.textContent = totals.total_units_in || 0;
+    }
+    
+    // Update Units Transferred  
+    const unitsOutElement = document.getElementById('total_units_out');
+    if (unitsOutElement) {
+        unitsOutElement.textContent = totals.total_units_out || 0;
+    }
+    
+    console.log('Updated blood flow totals:', {
+        units_in: totals.total_units_in,
+        units_out: totals.total_units_out
+    });
+}
+
+function submitTransfer() {
+    const form = document.getElementById('transferForm');
+    const formData = new FormData(form);
+    
+    // Basic validation
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('button[onclick="submitTransfer()"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    submitBtn.disabled = true;
+    
+    // Prepare transfer data
+    const transferData = {
+        patient_id: formData.get('patient_id'),
+        patient_name: formData.get('patient_name'),
+        doctor_name: formData.get('doctor_name'),
+        blood_type: formData.get('blood_type'),
+        units: formData.get('units'),
+        department: formData.get('department'),
+        priority: formData.get('priority'),
+        notes: formData.get('notes'),
+        is_emergency: formData.get('is_emergency') ? 'yes' : 'no',
+        transfer_date: new Date().toISOString().split('T')[0],
+        transfer_time: new Date().toTimeString().split(' ')[0].substring(0, 5)
+    };
+    
+    // Submit to backend API
+    fetch('/blood-bank/api/add-transfer/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCsrfToken()
+        },
+        body: new URLSearchParams(transferData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showNotification(`Blood Transfer Created Successfully!\n\nPatient: ${transferData.patient_name}\nBlood Type: ${transferData.blood_type}\nUnits: ${transferData.units}\nDoctor: ${transferData.doctor_name}\nDepartment: ${transferData.department}`, 'success');
+            
+            // Update blood inventory
+            updateBloodInventory(data.inventory);
+            
+            // Update blood flow totals
+            if (data.blood_flow_totals) {
+                updateBloodFlowTotals(data.blood_flow_totals);
+            }
+            
+            // Add new transfer to recent transfers
+            addTransferToList(data.transfer);
+            
+            // Close modal and reset form
+            closeTransferModal();
+        } else {
+            showNotification(data.message || 'Error creating blood transfer', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Network error. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+           document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+        type === 'success' ? 'bg-green-500 text-white' : 
+        type === 'error' ? 'bg-red-500 text-white' : 
+        'bg-blue-500 text-white'
+    }`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+function updateBloodInventory(inventory) {
+    // Update blood type cards with new inventory counts
+    Object.keys(inventory).forEach(bloodType => {
+        const bloodCards = document.querySelectorAll('.blood-type-card');
+        bloodCards.forEach(card => {
+            const typeElement = card.querySelector('.blood-type');
+            if (typeElement && typeElement.textContent.trim() === bloodType) {
+                const quantityElement = card.querySelector('.blood-quantity');
+                const statusElement = card.querySelector('.blood-status');
+                
+                if (quantityElement && statusElement) {
+                    const count = inventory[bloodType];
+                    quantityElement.textContent = count;
+                    
+                    // Update status and card classes
+                    card.className = card.className.replace(/\b(low-stock|out-of-stock)\b/g, '');
+                    
+                    if (count === 0) {
+                        card.classList.add('out-of-stock');
+                        statusElement.textContent = 'Out of Stock';
+                        statusElement.className = 'blood-status critical';
+                    } else if (count < 3) {
+                        card.classList.add('low-stock');
+                        statusElement.textContent = 'Low Stock';
+                        statusElement.className = 'blood-status low';
+                    } else {
+                        statusElement.textContent = 'Available';
+                        statusElement.className = 'blood-status available';
+                    }
+                }
+            }
+        });
+    });
+}
+
+function addTransferToList(transfer) {
+    const transfersList = document.querySelector('.transfers-list');
+    if (!transfersList) return;
+    
+    // Create new transfer item
+    const transferItem = document.createElement('div');
+    transferItem.className = 'transfer-item';
+    transferItem.innerHTML = `
+        <div class="transfer-header">
+            <div class="patient-name">${transfer.patient_name}</div>
+            ${transfer.is_emergency === 'yes' ? `
+                <div class="emergency-badge">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    EMERGENCY
+                </div>
+            ` : ''}
+        </div>
+        <div class="transfer-details">
+            <div class="transfer-detail">
+                <i class="fas fa-tint text-red-500"></i>
+                ${transfer.blood_type} - ${transfer.units} unit(s)
+            </div>
+            <div class="transfer-detail">
+                <i class="fas fa-user-md text-blue-500"></i>
+                ${transfer.doctor_name}
+            </div>
+            <div class="transfer-detail">
+                <i class="fas fa-calendar text-gray-500"></i>
+                ${transfer.transfer_date} at ${transfer.transfer_time}
+            </div>
+            <div class="transfer-detail">
+                <i class="fas fa-hospital text-green-500"></i>
+                ${transfer.department}
+            </div>
+        </div>
+    `;
+    
+    // Add to top of list
+    transfersList.insertBefore(transferItem, transfersList.firstChild);
+    
+    // Remove last item if list is getting too long (keep only 5 items)
+    const items = transfersList.querySelectorAll('.transfer-item');
+    if (items.length > 5) {
+        items[items.length - 1].remove();
+    }
+}
+
+function viewReports() {
+    alert('View Reports functionality would be implemented here');
+}
+
+function viewAllTransfers() {
+    alert('View All Transfers functionality would be implemented here');
+}
+
+
+// Modal event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Close transfer modal when clicking outside
+    document.getElementById('transferModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeTransferModal();
+        }
+    });
+    
+    // Close donor modal when clicking outside
+    document.getElementById('donorModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDonorModal();
+        }
+    });
+    
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (!document.getElementById('transferModal').classList.contains('hidden')) {
+                closeTransferModal();
+            } else if (!document.getElementById('donorModal').classList.contains('hidden')) {
+                closeDonorModal();
+            }
+        }
+    });
+    
+    // View All Transfers Modal Functions
+    function viewAllTransfers() {
+        document.getElementById('allTransfersModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeAllTransfersModal() {
+        document.getElementById('allTransfersModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+    
+    // Update escape key handler to include all transfers modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (!document.getElementById('transferModal').classList.contains('hidden')) {
+                closeTransferModal();
+            } else if (!document.getElementById('donorModal').classList.contains('hidden')) {
+                closeDonorModal();
+            } else if (!document.getElementById('allTransfersModal').classList.contains('hidden')) {
+                closeAllTransfersModal();
+            }
+        }
+    });
+
+    // Fade-up animations for sections and items
+    try {
+        const items = document.querySelectorAll('.bb-fade-init');
+        items.forEach((el, i) => {
+            setTimeout(() => el.classList.add('bb-fade-in'), i * 60);
+        });
+    } catch (e) { console.debug('BB fade init error', e); }
+
+    // Count-up animations for key stats
+    try {
+        function countUp(el, endValue, opts={}){
+            if (!el) return;
+            const duration = opts.duration || 1000;
+            const start = performance.now();
+            const startVal = 0;
+            function frame(ts){
+                const p = Math.min((ts - start)/duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                const val = Math.round(startVal + (endValue - startVal)*eased);
+                el.textContent = val.toLocaleString();
+                if (p < 1) requestAnimationFrame(frame);
+            }
+            requestAnimationFrame(frame);
+        }
+
+        const ids = ['units-in','units-out','bb-total-donors','bb-donations-today','bb-donations-month','bb-total-units'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el){
+                const target = parseInt((el.textContent||'0').replace(/[^0-9]/g,'')) || 0;
+                countUp(el, target, { duration: 1200 });
+            }
+        });
+    } catch (e) { console.debug('BB count-up init error', e); }
+});
+</script>
+
+<!-- Custom All Transfers Modal -->
+<div id="allTransfersModal" class="fixed inset-0 z-50 hidden" style="background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 900px; width: 100%; max-height: 80vh; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.2);">
+            
+            <!-- Custom Header -->
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 2rem; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -50px; right: -50px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+                <div style="position: absolute; bottom: -30px; left: -30px; width: 80px; height: 80px; background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+                
+                <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h2 style="color: white; font-size: 1.875rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 3rem; height: 3rem; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-exchange-alt" style="color: white; font-size: 1.25rem;"></i>
+                            </div>
+                            All Blood Transfers
+                        </h2>
+                        <p style="color: rgba(255, 255, 255, 0.9); margin: 0.5rem 0 0 0; font-size: 1rem;">Complete transfer history and records</p>
+                    </div>
+                    <button onclick="closeAllTransfersModal()" style="background: rgba(255, 255, 255, 0.2); border: none; color: white; width: 2.5rem; height: 2.5rem; border-radius: 50%; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                        <i class="fas fa-times" style="font-size: 1.125rem;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Content -->
+            <div style="padding: 2rem; max-height: 60vh; overflow-y: auto; background: #f8fafc;">
+                <div style="display: grid; gap: 1.5rem;">
+                    <!-- Transfer Item 1 -->
+                    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #10b981; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: between; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);">
+                                    A+
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0;">Alice Bennett</h3>
+                                    <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">2 units transferred</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem; color: #6b7280;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-user-md" style="color: #10b981;"></i>
+                                <span>Dr. Omar R. Siddiqui</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-hospital" style="color: #10b981;"></i>
+                                <span>Cardiology</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-calendar" style="color: #10b981;"></i>
+                                <span>Nov. 11, 2025</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-clock" style="color: #10b981;"></i>
+                                <span>14:53</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transfer Item 2 - Emergency -->
+                    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #ef4444; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);">
+                                    A+
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0;">Alice Bennett</h3>
+                                    <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">10 units transferred</p>
+                                </div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);">
+                                <i class="fas fa-exclamation-triangle" style="animation: pulse 2s infinite;"></i>
+                                EMERGENCY
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem; color: #6b7280;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-user-md" style="color: #ef4444;"></i>
+                                <span>Dr. Ayesha Khan</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-hospital" style="color: #ef4444;"></i>
+                                <span>Emergency</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-calendar" style="color: #ef4444;"></i>
+                                <span>Nov. 11, 2025</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-clock" style="color: #ef4444;"></i>
+                                <span>14:52</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transfer Item 3 - Emergency -->
+                    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #ef4444; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.875rem; box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);">
+                                    AB+
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0;">admin_demo admin</h3>
+                                    <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">10 units transferred</p>
+                                </div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);">
+                                <i class="fas fa-exclamation-triangle" style="animation: pulse 2s infinite;"></i>
+                                EMERGENCY
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem; color: #6b7280;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-user-md" style="color: #ef4444;"></i>
+                                <span>Ayesha Khan</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-hospital" style="color: #ef4444;"></i>
+                                <span>Radiology</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-calendar" style="color: #ef4444;"></i>
+                                <span>Nov. 7, 2025</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-clock" style="color: #ef4444;"></i>
+                                <span>02:37</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transfer Item 4 - Emergency -->
+                    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #ef4444; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);">
+                                    O-
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0;">mike. jarro</h3>
+                                    <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">2 units transferred</p>
+                                </div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);">
+                                <i class="fas fa-exclamation-triangle" style="animation: pulse 2s infinite;"></i>
+                                EMERGENCY
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem; color: #6b7280;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-user-md" style="color: #ef4444;"></i>
+                                <span>Ayesha Khan</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-hospital" style="color: #ef4444;"></i>
+                                <span>Radiology</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-calendar" style="color: #ef4444;"></i>
+                                <span>Nov. 7, 2025</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-clock" style="color: #ef4444;"></i>
+                                <span>02:25</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transfer Item 5 - Emergency -->
+                    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #ef4444; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);">
+                                    O-
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0;">mike. jarro</h3>
+                                    <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">4 units transferred</p>
+                                </div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);">
+                                <i class="fas fa-exclamation-triangle" style="animation: pulse 2s infinite;"></i>
+                                EMERGENCY
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem; color: #6b7280;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-user-md" style="color: #ef4444;"></i>
+                                <span>Ayesha Khan</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-hospital" style="color: #ef4444;"></i>
+                                <span>Radiology</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-calendar" style="color: #ef4444;"></i>
+                                <span>Nov. 7, 2025</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-clock" style="color: #ef4444;"></i>
+                                <span>02:24</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Footer -->
+            <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 1.5rem 2rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <div style="color: #6b7280; font-size: 0.875rem;">
+                    <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                    Showing all blood transfer records
+                </div>
+                <button onclick="closeAllTransfersModal()" style="background: linear-gradient(135deg, #6b7280, #4b5563); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 12px -2px rgba(0, 0, 0, 0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1)'">
+                    <i class="fas fa-times"></i>
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

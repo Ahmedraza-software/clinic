@@ -1,0 +1,952 @@
+{% extends 'operation_theater/base_ot.html' %}
+{% load humanize %}
+
+{% block page_title %}{{ surgery }}{% endblock %}
+
+{% block page_actions %}
+    <div class="btn-group">
+        <a href="{% url 'operation_theater:surgery_edit' surgery.pk %}" class="btn btn-sm" 
+           style="background-color: #dbeafe; border-color: #bfdbfe; color: #1e40af;">
+            <i class="fas fa-edit"></i>
+        </a>
+        <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" 
+                style="background-color: #f3f4f6; border-color: #d1d5db; color: #374151;"
+                data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#statusModal">
+                    <i class="fas fa-exchange-alt me-2"></i>Update Status
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fas fa-trash-alt me-2"></i>Delete
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <!-- Status Update Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statusModalLabel">Update Surgery Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'operation_theater:update_surgery_status' surgery.pk %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                {% for value, display in surgery.STATUS_CHOICES %}
+                                    <option value="{{ value }}" {% if surgery.status == value %}selected{% endif %}>
+                                        {{ display }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="deleteModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this surgery record? This action cannot be undone.</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        This will permanently delete all associated data including team members and consumables.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{% url 'operation_theater:surgery_delete' surgery.pk %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-1"></i> Delete Permanently
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+<style>
+  /* Hide only the sidebar navigation links on this page (keep sidebar visible) */
+  #sidebar ul.nav.flex-column { display: none !important; }
+  #sidebar .position-sticky { padding-top: 0 !important; }
+  /* Remove the page title header bar space from base layout to save vertical space */
+  main.col-md-9.ms-sm-auto.col-lg-10.px-md-4 > .d-flex.border-bottom { display: none !important; }
+  /* Compact the main content area */
+  .ot-compact { max-width: 1000px; margin: 0 auto; }
+  .ot-compact h1 { font-size: 1.25rem; margin: 0; font-weight: 700; }
+  .ot-compact .section-title { font-size: 0.875rem; margin: 0; font-weight: 600; }
+  .ot-compact .card-pad { padding: 1rem !important; }
+  .ot-compact .field-gap { gap: 1rem !important; }
+  .ot-compact .btn { padding: 0.5rem 1rem; font-size: 0.875rem; border-radius: 0.5rem; transition: all 0.2s ease; }
+  
+  /* Enhanced form controls */
+  .ot-compact .form-control,
+  .ot-compact .form-select {
+    color: #374151 !important;
+    font-size: 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+  }
+  .ot-compact .form-control:focus,
+  .ot-compact .form-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+  }
+  
+  /* Enhanced cards */
+  .detail-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
+  .detail-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  /* Card headers */
+  .detail-card .card-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.875rem 1rem;
+    font-weight: 600;
+    color: #374151;
+  }
+  
+  /* Status badges */
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  .badge-scheduled { background: linear-gradient(135deg, #dbeafe, #bfdbfe) !important; color: #1e40af !important; }
+  .badge-in-progress { background: linear-gradient(135deg, #fef3c7, #fde68a) !important; color: #92400e !important; }
+  .badge-completed { background: linear-gradient(135deg, #d1fae5, #a7f3d0) !important; color: #065f46 !important; }
+  .badge-cancelled { background: linear-gradient(135deg, #fee2e2, #fecaca) !important; color: #991b1b !important; }
+  
+  /* Info sections */
+  .info-section {
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #f3f4f6;
+  }
+  .info-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+  .info-value {
+    font-size: 0.875rem;
+    color: #374151;
+    font-weight: 500;
+  }
+  
+  /* Timeline styles */
+  .timeline {
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e5e7eb;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  .timeline-item:last-child {
+    margin-bottom: 0;
+  }
+  .timeline-marker {
+    position: absolute;
+    left: -1.25rem;
+    top: 0.25rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    color: white;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .timeline-content {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Quick actions */
+  .quick-action {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #374151;
+    text-decoration: none;
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+  }
+  .quick-action:hover {
+    background-color: #f9fafb;
+    color: #1f2937;
+    text-decoration: none;
+  }
+  .quick-action:last-child {
+    border-bottom: none;
+  }
+  .quick-action i {
+    width: 1.25rem;
+    text-align: center;
+    margin-right: 0.75rem;
+    color: #6b7280;
+  }
+  
+  /* Empty states */
+  .empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #6b7280;
+  }
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+  .empty-state p {
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Form labels */
+  .form-label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+    font-size: 0.875rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+</style>
+<div class="py-6 px-4 ot-compact">
+  <div class="max-w-full mx-auto">
+    <!-- Surgery Details Header -->
+    <div class="bg-white shadow-lg detail-card" style="border: 1px solid #e5e7eb;">
+      <div class="px-6 py-4 border-b border-gray-200 card-pad" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+        <div class="d-flex justify-content-between align-items-center">
+          <h1 class="text-gray-900 ot-title mb-0">Surgery Details</h1>
+          <span class="status-badge badge-{{ surgery.get_status_badge }}">
+            {{ surgery.get_status_display }}
+          </span>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="row g-0">
+          <!-- Patient Information -->
+          <div class="col-md-6">
+            <div class="p-4 border-end">
+              <h6 class="section-title text-muted mb-3">Patient Information</h6>
+              <div class="d-flex align-items-center mb-3">
+                <div class="me-3" style="width: 48px; height: 48px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                  <i class="fas fa-user" style="color: #1e40af;"></i>
+                </div>
+                <div>
+                  <h5 class="mb-0" style="font-size: 1rem; font-weight: 600;">{{ surgery.patient.user.get_full_name }}</h5>
+                  <p class="text-muted mb-0" style="font-size: 0.875rem;">
+                    <i class="fas fa-id-card me-1"></i> {{ surgery.patient.mrn }}
+                  </p>
+                </div>
+              </div>
+              
+              <div class="info-section">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <div class="info-label">Gender & Age</div>
+                    <div class="info-value">
+                      <i class="fas fa-venus-mars me-2" style="color: #6b7280; font-size: 0.75rem;"></i>
+                      {{ surgery.patient.get_gender_display }}, {{ surgery.patient.get_age }} years
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">
+                      <i class="fas fa-phone me-2" style="color: #6b7280; font-size: 0.75rem;"></i>
+                      {{ surgery.patient.phone_number|default:"N/A" }}
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">
+                      <i class="fas fa-envelope me-2" style="color: #6b7280; font-size: 0.75rem;"></i>
+                      {{ surgery.patient.user.email|urlize }}
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="info-label">Date of Birth</div>
+                    <div class="info-value">
+                      <i class="fas fa-calendar-alt me-2" style="color: #6b7280; font-size: 0.75rem;"></i>
+                      {{ surgery.patient.date_of_birth|date:"M d, Y" }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Surgery Information -->
+          <div class="col-md-6">
+            <div class="p-4">
+              <h6 class="section-title text-muted mb-3">Surgery Information</h6>
+              
+              <div class="info-section">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <div class="info-label">Surgery Type</div>
+                    <div class="info-value">{{ surgery.surgery_type.name }}</div>
+                  </div>
+                  <div class="col-12">
+                    <div class="info-label">Operation Theater</div>
+                    <div class="info-value">{{ surgery.operation_theater.name }}</div>
+                  </div>
+                  <div class="col-12">
+                    <div class="info-label">Scheduled Date</div>
+                    <div class="info-value">{{ surgery.scheduled_date|date:"M d, Y" }}</div>
+                  </div>
+                  <div class="col-12">
+                    <div class="info-label">Time</div>
+                    <div class="info-value">{{ surgery.start_time|time:"H:i" }} - {{ surgery.end_time|time:"H:i" }}</div>
+                  </div>
+                  <div class="col-12">
+                    <div class="info-label">Duration</div>
+                    <div class="info-value">{{ surgery.duration|default:"N/A" }}</div>
+                  </div>
+                  <div class="col-12">
+                    <div class="info-label">Status</div>
+                    <div class="info-value">
+                      <span class="status-badge badge-{{ surgery.get_status_badge }}">
+                        {{ surgery.get_status_display }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Surgery Notes -->
+        {% if surgery.notes %}
+        <div class="border-top p-4">
+          <h6 class="section-title text-muted mb-3">Surgery Notes</h6>
+          <div class="info-section">
+            <div class="info-value">{{ surgery.notes|linebreaks }}</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      
+      <!-- Footer -->
+      <div class="card-footer bg-light border-top">
+        <div class="row">
+          <div class="col-md-6">
+            <small class="text-muted">
+              <i class="far fa-user me-1"></i> 
+              Created by {{ surgery.created_by.get_full_name|default:"System" }} on 
+              {{ surgery.created_at|date:"M d, Y H:i" }}
+            </small>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <small class="text-muted">
+              <i class="far fa-edit me-1"></i>
+              Last updated {{ surgery.updated_at|timesince }} ago
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Surgical Team -->
+    <div class="bg-white shadow-lg detail-card mt-4" style="border: 1px solid #e5e7eb;">
+      <div class="px-6 py-4 border-b border-gray-200 card-pad" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="section-title text-muted mb-0">Surgical Team</h6>
+          <button type="button" class="btn btn-sm" 
+                  style="background-color: #dbeafe; border-color: #bfdbfe; color: #1e40af;"
+                  data-bs-toggle="modal" data-bs-target="#addTeamMemberModal">
+            <i class="fas fa-plus me-1"></i> Add Team Member
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        {% if surgery.team_members.exists %}
+          <div class="p-4">
+            {% for member in surgery.team_members.all %}
+            <div class="d-flex align-items-center justify-content-between p-3 border-bottom" style="background: #f9fafb; border-radius: 0.5rem; margin-bottom: 0.5rem;">
+              <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #1e40af;">
+                  {{ member.doctor.user.get_initials }}
+                </div>
+                <div>
+                  <h6 class="mb-0" style="font-size: 0.875rem; font-weight: 600;">Dr. {{ member.doctor.user.get_full_name }}</h6>
+                  <small class="text-muted" style="font-size: 0.75rem;">{{ member.doctor.qualification|default:"" }}</small>
+                </div>
+              </div>
+              <div class="d-flex align-items-center">
+                <span class="status-badge badge-scheduled me-3">
+                  {{ member.get_role_display }}
+                  {% if member.is_primary %}<i class="fas fa-star ms-1" style="color: #f59e0b;"></i>{% endif %}
+                </span>
+                <div class="btn-group btn-group-sm">
+                  <button type="button" class="btn btn-sm" 
+                          style="background-color: #f3f4f6; border-color: #d1d5db; color: #374151;"
+                          data-bs-toggle="modal" 
+                          data-bs-target="#editTeamMemberModal{{ member.id }}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <a href="{% url 'operation_theater:remove_team_member' member.id %}"
+                     class="btn btn-sm"
+                     style="background-color: #fee2e2; border-color: #fecaca; color: #991b1b;"
+                     onclick="return confirm('Are you sure you want to remove this team member?');">
+                    <i class="fas fa-user-minus"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <p>No team members added yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Consumables -->
+    <div class="bg-white shadow-lg detail-card mt-4" style="border: 1px solid #e5e7eb;">
+      <div class="px-6 py-4 border-b border-gray-200 card-pad" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="section-title text-muted mb-0">Consumables Used</h6>
+          <button type="button" class="btn btn-sm" 
+                  style="background-color: #dbeafe; border-color: #bfdbfe; color: #1e40af;"
+                  data-bs-toggle="modal" data-bs-target="#addConsumableModal">
+            <i class="fas fa-plus me-1"></i> Add Consumable
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label for="notes{{ member.id }}" class="form-label">Notes</label>
+                                                                    <textarea class="form-control" id="notes{{ member.id }}" 
+                                                                              name="notes" rows="3">{{ member.notes|default:'' }}</textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No team members added yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Consumables Used -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Consumables Used</h5>
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addConsumableModal">
+                    <i class="fas fa-plus me-1"></i> Add Consumable
+                </button>
+            </div>
+            <div class="card-body">
+                {% if surgery.consumables.exists %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th>Quantity</th>
+                                    <th>Used By</th>
+                                    <th>Date/Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in surgery.consumables.all %}
+                                    <tr>
+                                        <td>{{ item.name }}</td>
+                                        <td>{{ item.get_category_display|default:"-" }}</td>
+                                        <td>{{ item.quantity }} {{ item.unit }}</td>
+                                        <td>{{ item.recorded_by.get_full_name|default:"System" }}</td>
+                                        <td>{{ item.used_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editConsumableModal{{ item.id }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <a href="{% url 'operation_theater:delete_consumable' item.id %}"
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   onclick="return confirm('Are you sure you want to delete this consumable record?');">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </a>
+                                            </div>
+                                            
+                                            <!-- Edit Consumable Modal -->
+                                            <div class="modal fade" id="editConsumableModal{{ item.id }}" tabindex="-1" 
+                                                 aria-labelledby="editConsumableModalLabel{{ item.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="editConsumableModalLabel{{ item.id }}">
+                                                                Edit Consumable
+                                                            </h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="post" action="{% url 'operation_theater:edit_consumable' item.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label for="name{{ item.id }}" class="form-label">Item Name</label>
+                                                                    <input type="text" class="form-control" id="name{{ item.id }}" 
+                                                                           name="name" value="{{ item.name }}" required>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                        <div class="mb-3">
+                                                                            <label for="quantity{{ item.id }}" class="form-label">Quantity</label>
+                                                                            <input type="number" class="form-control" id="quantity{{ item.id }}" 
+                                                                                   name="quantity" value="{{ item.quantity }}" min="0.01" step="0.01" required>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="mb-3">
+</div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTeamMemberModalLabel">Add Team Member</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'operation_theater:add_team_member' surgery.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="doctor" class="form-label">Doctor</label>
+                        <select class="form-select" id="doctor" name="doctor" required>
+                            <option value="" selected disabled>Select a doctor</option>
+                            {% for doctor in available_doctors %}
+                                <option value="{{ doctor.id }}">
+                                    Dr. {{ doctor.user.get_full_name }} - {{ doctor.specialty|default:"General" }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select" id="role" name="role" required>
+                            {% for value, display in SurgeryTeam.ROLE_CHOICES %}
+                                <option value="{{ value }}" {% if value == 'surgeon' %}selected{% endif %}>
+                                    {{ display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_primary" name="is_primary">
+                            <label class="form-check-label" for="is_primary">
+                                Primary Surgeon
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add to Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Consumable Modal -->
+<div class="modal fade" id="addConsumableModal" tabindex="-1" aria-labelledby="addConsumableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addConsumableModalLabel">Add Consumable</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'operation_theater:add_consumable' surgery.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Item Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select" id="category" name="category">
+                                    <option value="medication">Medication</option>
+                                    <option value="surgical">Surgical Supplies</option>
+                                    <option value="disposable">Disposable Items</option>
+                                    <option value="implant">Implant</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" min="0.01" step="0.01" value="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="unit" class="form-label">Unit</label>
+                                <input type="text" class="form-control" id="unit" name="unit" value="pcs" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Consumable</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Notes Modal -->
+<div class="modal fade" id="addNotesModal" tabindex="-1" aria-labelledby="addNotesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addNotesModalLabel">Add Surgery Notes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'operation_theater:update_surgery_notes' surgery.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="10" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Notes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Timeline styles */
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 1.5rem;
+        width: 2px;
+        background: #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -2.5rem;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        z-index: 1;
+    }
+    
+    .timeline-content {
+        padding: 0.5rem 1rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Avatar styles */
+    .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .avatar-initial {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .avatar-sm {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.75rem;
+    }
+    
+    .avatar-lg {
+        width: 3.5rem;
+        height: 3.5rem;
+        font-size: 1.5rem;
+    }
+    
+    /* Status badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+    }
+    
+    .bg-scheduled { background-color: #4e73df !important; }
+    .bg-in_progress { background-color: #f6c23e !important; color: #000 !important; }
+    .bg-completed { background-color: #1cc88a !important; }
+    .bg-cancelled { background-color: #e74a3b !important; }
+    .bg-postponed { background-color: #6c757d !important; }
+    
+    .bg-soft-primary { background-color: rgba(78, 115, 223, 0.1) !important; }
+    .text-primary { color: #4e73df !important; }
+    
+    /* Card styles */
+    .card {
+        border: none;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        margin-bottom: 1.5rem;
+    }
+    
+    .card-header {
+        background-color: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+        padding: 1rem 1.25rem;
+    }
+    
+    /* Table styles */
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #6e707e;
+        background-color: #f8f9fc;
+    }
+    
+    .table td, .table th {
+        padding: 0.75rem;
+        vertical-align: middle;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 991.98px) {
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .table-responsive {
+            border: none;
+        }
+    }
+    
+    @media (max-width: 767.98px) {
+        .timeline::before {
+            left: 1.25rem;
+        }
+        
+        .timeline-marker {
+            left: -2.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Handle form submissions with confirmation
+    const deleteForms = document.querySelectorAll('.delete-form');
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Initialize date and time pickers
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr('.datepicker', {
+            dateFormat: 'Y-m-d',
+            allowInput: true
+        });
+        
+        flatpickr('.timepicker', {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: 'H:i',
+            time_24hr: true,
+            minuteIncrement: 15,
+            allowInput: true
+        });
+    }
+    
+    // Handle dynamic form fields for consumables
+    const addConsumableBtn = document.getElementById('addConsumableBtn');
+    const consumableFields = document.getElementById('consumableFields');
+    
+    if (addConsumableBtn && consumableFields) {
+        addConsumableBtn.addEventListener('click', function() {
+            const newField = consumableFields.firstElementChild.cloneNode(true);
+            const inputs = newField.querySelectorAll('input, select');
+            
+            // Clear values
+            inputs.forEach(input => {
+                input.value = '';
+                
+                // Update IDs and names to be unique
+                const newId = input.id + '_' + Date.now();
+                const name = input.name;
+                
+                input.id = newId;
+                
+                // Handle array-style names
+                if (name.endsWith('[]')) {
+                    input.name = name;
+                } else {
+                    input.name = name;
+                }
+                
+                // Update labels
+                const label = newField.querySelector(`label[for="${input.id.replace('_' + Date.now(), '')}"]`);
+                if (label) {
+                    label.setAttribute('for', newId);
+                }
+            });
+            
+            // Add remove button
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-outline-danger mt-2';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i> Remove';
+            removeBtn.onclick = function() {
+                newField.remove();
+            };
+            
+            newField.appendChild(removeBtn);
+            consumableFields.appendChild(newField);
+        });
+    }
+});
+</script>
+{% endblock %}

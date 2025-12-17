@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}Services - Healis Clinic{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-20 bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                Our <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Services</span>
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Comprehensive healthcare services delivered with compassion, expertise, and cutting-edge technology.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Core Services -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Core Medical Services</h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Expert medical care across multiple specialties with personalized treatment plans.
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Cardiology -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-shadow">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-heartbeat text-2xl text-red-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Cardiology</h3>
+                <p class="text-gray-600 mb-6">Comprehensive heart care with advanced diagnostic tools and treatment options for cardiovascular conditions.</p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• ECG and echocardiograms</li>
+                    <li>• Stress testing</li>
+                    <li>• Heart disease treatment</li>
+                    <li>• Cardiac rehabilitation</li>
+                </ul>
+            </div>
+            
+            <!-- Pediatrics -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-shadow">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-baby text-2xl text-green-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Pediatrics</h3>
+                <p class="text-gray-600 mb-6">Specialized care for infants, children, and adolescents in a child-friendly environment with experienced pediatricians.</p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Well-child visits</li>
+                    <li>• Immunizations</li>
+                    <li>• Growth monitoring</li>
+                    <li>• Developmental assessments</li>
+                </ul>
+            </div>
+            
+            <!-- Neurology -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-shadow">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-brain text-2xl text-purple-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Neurology</h3>
+                <p class="text-gray-600 mb-6">Expert care for disorders of the brain, spinal cord, and nervous system with advanced diagnostic capabilities.</p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Neurological examinations</li>
+                    <li>• EEG testing</li>
+                    <li>• Migraine treatment</li>
+                    <li>• Seizure management</li>
+                </ul>
+            </div>
+            
+            <!-- Orthopedics -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-shadow">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-bone text-2xl text-orange-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Orthopedics</h3>
+                <p class="text-gray-600 mb-6">Comprehensive care for musculoskeletal conditions, including bones, joints, ligaments, and muscles.</p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Joint replacement</li>
+                    <li>• Sports medicine</li>
+                    <li>• Fracture care</li>
+                    <li>• Physical therapy</li>
+                </ul>
+            </div>
+            
+            <!-- Emergency Care -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-shadow">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-ambulance text-2xl text-red-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Emergency Care</h3>
+                <p class="text-gray-600 mb-6">24/7 emergency medical services with rapid response times and comprehensive trauma care capabilities.</p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• 24/7 availability</li>
+                    <li>• Trauma care</li>
+                    <li>• Critical care</li>
+                    <li>• Emergency surgery</li>
+                </ul>
+            </div>
+            
+            <!-- General Medicine -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-shadow">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-stethoscope text-2xl text-blue-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">General Medicine</h3>
+                <p class="text-gray-600 mb-6">Primary healthcare services for routine check-ups, preventive care, and treatment of common conditions.</p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Annual check-ups</li>
+                    <li>• Preventive screenings</li>
+                    <li>• Chronic disease management</li>
+                    <li>• Health consultations</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Specialized Services -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Specialized Services</h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Advanced medical services with cutting-edge technology and specialized expertise.
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-12">
+            <div class="bg-white rounded-2xl p-8 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-microscope text-blue-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-900">Laboratory Services</h3>
+                </div>
+                <p class="text-gray-600 mb-6">
+                    State-of-the-art laboratory with rapid turnaround times for accurate diagnostic testing and health screenings.
+                </p>
+                <div class="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                    <div>• Blood tests</div>
+                    <div>• Urine analysis</div>
+                    <div>• Genetic testing</div>
+                    <div>• Pathology services</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-8 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-x-ray text-green-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-900">Imaging Services</h3>
+                </div>
+                <p class="text-gray-600 mb-6">
+                    Advanced imaging technology for accurate diagnosis and treatment planning with experienced radiologists.
+                </p>
+                <div class="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                    <div>• X-rays</div>
+                    <div>• MRI scans</div>
+                    <div>• CT scans</div>
+                    <div>• Ultrasounds</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-8 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-pills text-purple-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-900">Pharmacy Services</h3>
+                </div>
+                <p class="text-gray-600 mb-6">
+                    Full-service pharmacy with prescription management, medication counseling, and convenient refill services.
+                </p>
+                <div class="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                    <div>• Prescription filling</div>
+                    <div>• Medication counseling</div>
+                    <div>• Immunizations</div>
+                    <div>• Health screenings</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-8 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-laptop-medical text-orange-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-900">Telemedicine</h3>
+                </div>
+                <p class="text-gray-600 mb-6">
+                    Virtual consultations and remote monitoring services for convenient access to healthcare from home.
+                </p>
+                <div class="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                    <div>• Video consultations</div>
+                    <div>• Remote monitoring</div>
+                    <div>• Follow-up care</div>
+                    <div>• Prescription management</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 bg-blue-600 text-white">
+    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl md:text-4xl font-bold mb-6">
+            Ready to Experience Quality Healthcare?
+        </h2>
+        <p class="text-xl text-blue-100 mb-8 leading-relaxed">
+            Schedule an appointment today and discover why thousands of patients trust Healis Clinic for their healthcare needs.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'login' %}" class="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-full hover:bg-blue-50 transition-all duration-300 transform hover:scale-105">
+                <i class="fas fa-calendar-plus mr-3"></i>
+                Book Appointment
+            </a>
+            <a href="{% url 'contact' %}" class="inline-flex items-center px-8 py-4 border-2 border-white text-white font-semibold rounded-full hover:bg-white hover:text-blue-600 transition-all duration-300">
+                <i class="fas fa-phone mr-3"></i>
+                Contact Us
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add New Patient - Clinic Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Style Django form fields */
+input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="tel"], select, textarea {
+    width: 100%;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, 
+input[type="date"]:focus, input[type="tel"]:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.errorlist {
+    color: #dc2626;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    list-style: none;
+    padding: 0;
+}
+
+.errorlist li {
+    margin-bottom: 0.25rem;
+}
+
+/* Compact form styling */
+.form-section {
+    background: #fafafa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-section h3 {
+    color: #374151;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Responsive grid improvements */
+@media (min-width: 1024px) {
+    .form-grid-5 {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    .form-grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-2 px-3 sm:px-4 lg:px-6">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-4">
+            <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-900 m-0">Add New Patient</h1>
+                    <p class="mt-1 text-xs text-gray-500">Fill in the patient information below</p>
+                </div>
+                <a href="{% url 'dashboard' %}" class="text-sm text-blue-600 hover:text-blue-800">
+                    ← Back
+                </a>
+            </div>
+            
+            <!-- Messages -->
+            <div class="p-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-3 p-3 rounded {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form id="patientForm" method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Display Form Errors -->
+                    {% if user_form.errors or patient_form.errors %}
+                        <div class="mb-4 p-3 rounded bg-red-50 text-red-800 border border-red-200">
+                            <h4 class="font-medium mb-2">Please correct the following errors:</h4>
+                            <ul class="list-disc list-inside text-sm">
+                                {% for field, errors in user_form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|title }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for field, errors in patient_form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|title }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Account Information -->
+                    <div class="form-section">
+                        <h3>Account Information</h3>
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:form-grid-5">
+                            <div>
+                                <label for="{{ user_form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Email <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.email }}
+                                {% if user_form.email.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ user_form.email.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ user_form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    First Name <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.first_name }}
+                                {% if user_form.first_name.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ user_form.first_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ user_form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Last Name <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.last_name }}
+                                {% if user_form.last_name.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ user_form.last_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ user_form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Password <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.password1 }}
+                                {% if user_form.password1.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ user_form.password1.errors.0 }}</p>
+                                {% else %}
+                                    <p class="mt-1 text-xs text-gray-500">At least 8 characters</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ user_form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Confirm Password <span class="text-red-500">*</span>
+                                </label>
+                                {{ user_form.password2 }}
+                                {% if user_form.password2.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ user_form.password2.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medical Information -->
+                    <div class="form-section">
+                        <h3>Medical Information</h3>
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:form-grid-5">
+                            <div>
+                                <label for="{{ patient_form.date_of_birth.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Date of Birth
+                                </label>
+                                {{ patient_form.date_of_birth }}
+                                {% if patient_form.date_of_birth.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ patient_form.date_of_birth.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ patient_form.gender.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Gender
+                                </label>
+                                {{ patient_form.gender }}
+                                {% if patient_form.gender.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ patient_form.gender.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ patient_form.blood_group.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Blood Group
+                                </label>
+                                {{ patient_form.blood_group }}
+                                {% if patient_form.blood_group.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ patient_form.blood_group.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ patient_form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Phone
+                                </label>
+                                {{ patient_form.phone }}
+                                {% if patient_form.phone.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ patient_form.phone.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="sm:col-span-3 lg:col-span-2">
+                                <label for="{{ patient_form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Address
+                                </label>
+                                {{ patient_form.address }}
+                                {% if patient_form.address.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ patient_form.address.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information -->
+                    <div class="form-section">
+                        <h3>Payment Information</h3>
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:form-grid-4">
+                            <div>
+                                <label for="registration_fee" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Registration Fee <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                    <input type="number" name="registration_fee" id="registration_fee" required
+                                        class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="0.00" step="0.01" min="0">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Payment Method <span class="text-red-500">*</span>
+                                </label>
+                                <select name="payment_method" id="payment_method" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Select Payment Method</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Credit/Debit Card</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="insurance">Insurance</option>
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-3 lg:col-span-2">
+                                <label for="payment_notes" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Payment Notes
+                                </label>
+                                <textarea name="payment_notes" id="payment_notes" rows="2"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Additional payment information or notes"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="mt-3 flex justify-end space-x-2 pt-3 border-t border-gray-200">
+                        <a href="{% url 'dashboard' %}"
+                            class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                            class="px-5 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Save Patient
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

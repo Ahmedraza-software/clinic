@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}EMR - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex flex-col md:flex-row gap-6">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 flex-shrink-0">
+            <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+                <h2 class="text-xl font-bold mb-4 text-blue-600">EMR Menu</h2>
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{% url 'emr:dashboard' %}" 
+                               class="flex items-center px-3 py-2 text-gray-700 rounded hover:bg-blue-50 {% if request.resolver_match.url_name == 'dashboard' %}bg-blue-100 font-medium text-blue-700{% endif %}">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                </svg>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'emr:form_templates' %}" 
+                               class="flex items-center px-3 py-2 text-gray-700 rounded hover:bg-blue-50 {% if 'form' in request.resolver_match.url_name %}bg-blue-100 font-medium text-blue-700{% endif %}">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Digital Forms
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'emr:equipment_list' %}" 
+                               class="flex items-center px-3 py-2 text-gray-700 rounded hover:bg-blue-50 {% if 'equipment' in request.resolver_match.url_name %}bg-blue-100 font-medium text-blue-700{% endif %}">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                                Equipment
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'emr:alerts' %}" 
+                               class="flex items-center px-3 py-2 text-gray-700 rounded hover:bg-blue-50 {% if 'alert' in request.resolver_match.url_name %}bg-blue-100 font-medium text-blue-700{% endif %}">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                Alerts
+                                {% if unread_alerts_count %}
+                                <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                    {{ unread_alerts_count }}
+                                </span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" 
+                               class="flex items-center px-3 py-2 text-gray-700 rounded hover:bg-blue-50 {% if 'ot' in request.resolver_match.url_name %}bg-blue-100 font-medium text-blue-700{% endif %}">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                                Operation Theater
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'emr:reports' %}" 
+                               class="flex items-center px-3 py-2 text-gray-700 rounded hover:bg-blue-50 {% if 'report' in request.resolver_match.url_name %}bg-blue-100 font-medium text-blue-700{% endif %}">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Reports
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <h3 class="font-semibold text-gray-700 mb-3">Quick Actions</h3>
+                <div class="space-y-2">
+                    <a href="{% url 'emr:add_vitals' 0 %}" 
+                       class="flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Record Vitals
+                    </a>
+                    <a href="{% url 'emr:equipment_checkout' %}" 
+                       class="flex items-center px-3 py-2 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Checkout Equipment
+                    </a>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1">
+            <!-- Page Header -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">{% block page_title %}{% endblock %}</h1>
+                <p class="text-gray-600 mt-1">{% block page_subtitle %}{% endblock %}</p>
+            </div>
+            
+            <!-- Messages -->
+            {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                <div class="p-4 mb-4 text-sm rounded-lg {% if message.tags %}{{ message.tags }}{% else %}bg-blue-100 text-blue-700{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Page Content -->
+            {% block emr_content %}
+            {% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add any EMR-specific JavaScript here
+</script>
+{% endblock %}

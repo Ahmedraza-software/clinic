@@ -1,0 +1,769 @@
+{% extends 'doctors/base_doctor.html' %}
+{% load static doctor_tags %}
+
+{% block doctor_title %}{{ patient.user.get_full_name|default:patient.user.username }} - Patient Details{% endblock %}
+
+{% block doctor_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'doctors:patient_list' %}" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="h2 mb-0">
+            {{ patient.user.get_full_name|default:patient.user.username }}
+            <small class="text-muted">Patient Details</small>
+        </h1>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{% url 'doctors:patient_edit' patient.id %}">
+                        <i class="fas fa-edit me-2"></i>Edit Patient
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                        <i class="fas fa-plus-circle me-2"></i>Add Note
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deletePatientModal">
+                        <i class="fas fa-trash-alt me-2"></i>Delete Patient
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <a href="{% url 'appointments:book' %}?patient={{ patient.id }}" class="btn btn-primary">
+            <i class="fas fa-calendar-plus me-1"></i> New Appointment
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Patient Information Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Patient Information</h5>
+                <span class="badge bg-{{ patient.get_status_display|lower }}">
+                    {{ patient.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="position-relative d-inline-block">
+                        <div class="avatar avatar-xxl">
+                            {% if patient.profile_picture %}
+                                <img src="{{ patient.profile_picture.url }}" alt="{{ patient.user.get_full_name }}" 
+                                     class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                            {% else %}
+                                <span class="avatar-initial bg-primary text-white" style="font-size: 3rem; width: 120px; height: 120px; line-height: 120px;">
+                                    {{ patient|get_patient_initials }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <span class="position-absolute bottom-0 end-0 bg-success rounded-circle p-2 border border-3 border-white">
+                            <i class="fas fa-check text-white"></i>
+                        </span>
+                    </div>
+                    <h4 class="mt-3 mb-1">{{ patient.user.get_full_name|default:patient.user.username }}</h4>
+                    <p class="text-muted mb-0">Patient ID: {{ patient.id|stringformat:"06d" }}</p>
+                    <p class="text-muted">Since {{ patient.created_at|date:"M d, Y" }}</p>
+                </div>
+                
+                <hr class="my-4">
+                
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-light text-primary me-3">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Email</h6>
+                                <a href="mailto:{{ patient.user.email }}" class="text-muted">
+                                    {{ patient.user.email }}
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-light text-primary me-3">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Phone</h6>
+                                <a href="tel:{{ patient.phone_number }}" class="text-muted">
+                                    {{ patient.phone_number|default:"Not provided" }}
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-light text-primary me-3">
+                                <i class="fas fa-venus-mars"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Gender</h6>
+                                <p class="text-muted mb-0">
+                                    {{ patient.get_gender_display|default:"Not specified" }}
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-light text-primary me-3">
+                                <i class="fas fa-birthday-cake"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Date of Birth</h6>
+                                <p class="text-muted mb-0">
+                                    {{ patient.date_of_birth|date:"F d, Y"|default:"Not specified" }}
+                                    {% if patient.date_of_birth %}
+                                        ({{ patient.date_of_birth|timesince }} old)
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-light text-primary me-3">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Address</h6>
+                                <p class="text-muted mb-0">
+                                    {% if patient.address %}
+                                        {{ patient.address }}
+                                        {% if patient.city %}, {{ patient.city }}{% endif %}
+                                        {% if patient.state %}, {{ patient.state }}{% endif %}
+                                        {% if patient.postal_code %}, {{ patient.postal_code }}{% endif %}
+                                        {% if patient.country %}, {{ patient.country }}{% endif %}
+                                    {% else %}
+                                        Not provided
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-light text-primary me-3">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Blood Type</h6>
+                                <p class="text-muted mb-0">
+                                    {{ patient.blood_type|default:"Not specified" }}
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-light text-primary me-3">
+                                <i class="fas fa-notes-medical"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Medical History</h6>
+                                <p class="text-muted mb-0">
+                                    {{ patient.medical_history|truncatewords:10|default:"No medical history recorded" }}
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-light text-primary me-3">
+                                <i class="fas fa-pills"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Allergies</h6>
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    {% if patient.allergies %}
+                                        {% for allergy in patient.allergies.all %}
+                                            <span class="badge bg-danger bg-opacity-10 text-danger">
+                                                <i class="fas fa-exclamation-circle me-1"></i> {{ allergy.name }}
+                                            </span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">No known allergies</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <a href="{% url 'doctors:patient_medical_history' patient.id %}" class="btn btn-outline-primary">
+                        <i class="fas fa-file-medical me-1"></i> View Full Medical History
+                    </a>
+                    <a href="{% url 'doctors:patient_edit' patient.id %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-edit me-1"></i> Edit Patient Information
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="col-md-8">
+        <!-- Upcoming Appointments -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Upcoming Appointments</h5>
+                <a href="{% url 'appointments:book' %}?patient={{ patient.id }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> New
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if upcoming_appointments %}
+                    <div class="list-group list-group-flush">
+                        {% for appointment in upcoming_appointments %}
+                            <a href="{% url 'doctors:appointment_detail' appointment.id %}" 
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-calendar-check me-2 text-primary"></i>
+                                        {{ appointment.get_appointment_type_display }}
+                                    </h6>
+                                    <small class="text-muted">
+                                        {{ appointment.appointment_date|date:"M d, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}
+                                    </small>
+                                </div>
+                                <p class="mb-1">
+                                    <i class="fas fa-user-md me-2 text-muted"></i>
+                                    Dr. {{ appointment.doctor.user.get_full_name|default:appointment.doctor.user.username }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ appointment.get_duration }} minutes
+                                    </small>
+                                    <span class="badge bg-{{ appointment.status|get_status_badge }}">
+                                        {{ appointment.get_status_display }}
+                                    </span>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    {% if upcoming_appointments|length > 2 %}
+                        <div class="card-footer text-center">
+                            <a href="{% url 'doctors:patient_appointments' patient.id %}" class="btn btn-sm btn-link">
+                                View all appointments ({{ patient.appointments.count }})
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i class="fas fa-calendar-times fa-3x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">No Upcoming Appointments</h5>
+                        <p class="text-muted mb-0">This patient doesn't have any upcoming appointments.</p>
+                        <a href="{% url 'appointments:book' %}?patient={{ patient.id }}" class="btn btn-primary mt-3">
+                            <i class="fas fa-plus me-1"></i> Schedule Appointment
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Medical Records -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Medical Records</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#addRecordModal">
+                        <i class="fas fa-plus me-1"></i> Add Record
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if medical_records %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Record Type</th>
+                                    <th>Doctor</th>
+                                    <th>Notes</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in medical_records %}
+                                    <tr>
+                                        <td>{{ record.record_date|date:"M d, Y" }}</td>
+                                        <td>{{ record.record_type }}</td>
+                                        <td>Dr. {{ record.doctor.user.get_short_name|default:record.doctor.user.username }}</td>
+                                        <td>{{ record.notes|truncatewords:5 }}</td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'doctors:medical_record_detail' record.id %}" 
+                                                   class="btn btn-outline-primary" 
+                                                   data-bs-toggle="tooltip" 
+                                                   title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'doctors:medical_record_edit' record.id %}" 
+                                                   class="btn btn-outline-secondary"
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" 
+                                                        class="btn btn-outline-danger"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteRecordModal{{ record.id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Delete Record Modal -->
+                                            <div class="modal fade" id="deleteRecordModal{{ record.id }}" tabindex="-1" 
+                                                 aria-labelledby="deleteRecordModalLabel{{ record.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-danger text-white">
+                                                            <h5 class="modal-title" id="deleteRecordModalLabel{{ record.id }}">
+                                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                                Confirm Deletion
+                                                            </h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to delete this medical record?</p>
+                                                            <div class="alert alert-warning" role="alert">
+                                                                <i class="fas fa-exclamation-circle me-2"></i>
+                                                                This action cannot be undone.
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                <i class="fas fa-times me-1"></i> Cancel
+                                                            </button>
+                                                            <form method="post" action="{% url 'doctors:medical_record_delete' record.id %}" class="d-inline">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn btn-danger">
+                                                                    <i class="fas fa-trash me-1"></i> Delete Record
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'doctors:patient_medical_records' patient.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-1"></i> View All Records ({{ patient.medical_records.count }})
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i class="fas fa-file-medical fa-3x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">No Medical Records Found</h5>
+                        <p class="text-muted mb-0">This patient doesn't have any medical records yet.</p>
+                        <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addRecordModal">
+                            <i class="fas fa-plus me-1"></i> Add First Record
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Prescriptions -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Prescriptions</h5>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addPrescriptionModal">
+                    <i class="fas fa-plus me-1"></i> New Prescription
+                </button>
+            </div>
+            <div class="card-body">
+                {% if prescriptions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Medication</th>
+                                    <th>Dosage</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prescription in prescriptions %}
+                                    <tr>
+                                        <td>{{ prescription.date_prescribed|date:"M d, Y" }}</td>
+                                        <td>{{ prescription.medication.name }}</td>
+                                        <td>{{ prescription.dosage }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ prescription.status|lower }}">
+                                                {{ prescription.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'doctors:prescription_detail' prescription.id %}" 
+                                                   class="btn btn-outline-primary" 
+                                                   data-bs-toggle="tooltip" 
+                                                   title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'doctors:prescription_edit' prescription.id %}" 
+                                                   class="btn btn-outline-secondary"
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'doctors:prescription_print' prescription.id %}" 
+                                                   class="btn btn-outline-info"
+                                                   target="_blank"
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Print">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'doctors:patient_prescriptions' patient.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-prescription me-1"></i> View All Prescriptions ({{ patient.prescriptions.count }})
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <i class="fas fa-prescription-bottle fa-3x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">No Prescriptions Found</h5>
+                        <p class="text-muted mb-0">This patient doesn't have any prescriptions yet.</p>
+                        <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addPrescriptionModal">
+                            <i class="fas fa-plus me-1"></i> Add First Prescription
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addNoteModalLabel">Add Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'doctors:add_patient_note' patient.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="noteTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="noteTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="noteContent" class="form-label">Content</label>
+                        <textarea class="form-control" id="noteContent" name="content" rows="8" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isImportant" name="is_important">
+                            <label class="form-check-label" for="isImportant">
+                                Mark as important
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Record Modal -->
+<div class="modal fade" id="addRecordModal" tabindex="-1" aria-labelledby="addRecordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRecordModalLabel">Add Medical Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'doctors:medical_record_create' patient.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="recordType" class="form-label">Record Type</label>
+                            <select class="form-select" id="recordType" name="record_type" required>
+                                <option value="">Select record type...</option>
+                                <option value="consultation">Consultation</option>
+                                <option value="diagnosis">Diagnosis</option>
+                                <option value="lab_result">Lab Result</option>
+                                <option value="imaging">Imaging</option>
+                                <option value="procedure">Procedure</option>
+                                <option value="surgery">Surgery</option>
+                                <option value="vaccination">Vaccination</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="recordDate" class="form-label">Record Date</label>
+                            <input type="date" class="form-control" id="recordDate" name="record_date" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recordTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="recordTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recordDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="recordDescription" name="description" rows="4"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recordFile" class="form-label">Upload File (Optional)</label>
+                        <input class="form-control" type="file" id="recordFile" name="file">
+                        <div class="form-text">You can upload PDF, JPG, PNG files (max 5MB)</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Prescription Modal -->
+<div class="modal fade" id="addPrescriptionModal" tabindex="-1" aria-labelledby="addPrescriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPrescriptionModalLabel">New Prescription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'doctors:prescription_create' patient.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="medication" class="form-label">Medication</label>
+                            <select class="form-select" id="medication" name="medication" required>
+                                <option value="">Select medication...</option>
+                                {% for med in medications %}
+                                    <option value="{{ med.id }}">{{ med.name }} ({{ med.dosage_form }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="dosage" class="form-label">Dosage</label>
+                            <input type="text" class="form-control" id="dosage" name="dosage" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="frequency" class="form-label">Frequency</label>
+                            <input type="text" class="form-control" id="frequency" name="frequency" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="duration" class="form-label">Duration</label>
+                            <input type="text" class="form-control" id="duration" name="duration" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="refills" class="form-label">Refills</label>
+                            <input type="number" class="form-control" id="refills" name="refills" min="0" value="0">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="instructions" class="form-label">Instructions</label>
+                        <textarea class="form-control" id="instructions" name="instructions" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Prescription</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Patient Modal -->
+<div class="modal fade" id="deletePatientModal" tabindex="-1" aria-labelledby="deletePatientModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deletePatientModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirm Patient Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>You are about to permanently delete this patient's record. This action cannot be undone.</p>
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This will also delete all associated medical records, appointments, and prescriptions.
+                </div>
+                <p>Type <strong>DELETE</strong> to confirm:</p>
+                <input type="text" id="deleteConfirmation" class="form-control" placeholder="Type DELETE to confirm">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </button>
+                <form method="post" action="{% url 'doctors:patient_delete' patient.id %}" id="deletePatientForm">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                        <i class="fas fa-trash-alt me-1"></i> Delete Patient Permanently
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .avatar-xxl {
+        width: 120px;
+        height: 120px;
+        font-size: 3rem;
+    }
+    
+    .icon-circle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+    
+    .list-group-item {
+        transition: all 0.2s;
+    }
+    
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+    }
+    
+    .bg-active {
+        background-color: #198754;
+    }
+    
+    .bg-inactive {
+        background-color: #6c757d;
+    }
+    
+    .bg-suspended {
+        background-color: #dc3545;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+    }
+    
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        border-bottom-width: 1px;
+    }
+    
+    .table td {
+        vertical-align: middle;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        border-radius: 0.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default date for record date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('recordDate').value = today;
+        
+        // Delete confirmation
+        const deleteConfirmation = document.getElementById('deleteConfirmation');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        
+        if (deleteConfirmation && confirmDeleteBtn) {
+            deleteConfirmation.addEventListener('input', function() {
+                confirmDeleteBtn.disabled = this.value !== 'DELETE';
+            });
+        }
+        
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

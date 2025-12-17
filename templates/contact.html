@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Healis Clinic</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon-heartbeat.svg">
+    <link rel="alternate icon" href="/static/favicon-heartbeat.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Glassmorphism Header -->
+    <header class="relative py-2 mt-16">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="border border-white/20 rounded-2xl bg-white/50 backdrop-blur-sm transition-all duration-500 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/20 pointer-events-none"></div>
+                <div class="relative flex justify-between items-center px-8 py-3">
+                    <div class="flex items-center">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-heartbeat text-white text-lg"></i>
+                            </div>
+                            <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                Healis Clinic
+                            </h1>
+                        </div>
+                    </div>
+                    <nav class="hidden md:flex items-center space-x-8">
+                        <a href="/" class="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Home</a>
+                        <a href="/services/" class="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">Services</a>
+                        <a href="/about/" class="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200">About</a>
+                        <a href="/contact/" class="text-blue-600 font-medium">Contact</a>
+                    </nav>
+                    <div class="flex items-center space-x-3">
+                        <a href="/accounts/login/" class="inline-flex items-center px-4 py-2 border border-blue-600/20 rounded-xl text-blue-600 font-medium hover:bg-blue-50 transition-all duration-200 backdrop-blur-sm">
+                            <i class="fas fa-sign-in-alt mr-2 text-sm"></i>
+                            Login
+                        </a>
+                        <a href="/accounts/register/" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200">
+                            <i class="fas fa-user-plus mr-2 text-sm"></i>
+                            Register
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+<!-- Hero Section -->
+<div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-6">Contact Us</h1>
+        <p class="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto">
+            Get in touch with us for appointments, inquiries, or emergency care. We're here to help 24/7.
+        </p>
+    </div>
+</div>
+
+<!-- Contact Information -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-3 gap-8 mb-16">
+            <!-- Phone -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-phone text-2xl text-blue-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Phone</h3>
+                <p class="text-gray-600 mb-2">General Inquiries</p>
+                <a href="tel:+1234567890" class="text-blue-600 hover:text-blue-800 font-semibold">+1 (234) 567-8900</a>
+                <p class="text-gray-600 mt-4 mb-2">Emergency Line</p>
+                <a href="tel:+1234567911" class="text-red-600 hover:text-red-800 font-semibold">+1 (234) 567-8911</a>
+            </div>
+            
+            <!-- Email -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-envelope text-2xl text-green-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Email</h3>
+                <p class="text-gray-600 mb-2">General Information</p>
+                <a href="mailto:info@healis.com" class="text-blue-600 hover:text-blue-800 font-semibold">info@healis.com</a>
+                <p class="text-gray-600 mt-4 mb-2">Appointments</p>
+                <a href="mailto:appointments@healis.com" class="text-blue-600 hover:text-blue-800 font-semibold">appointments@healis.com</a>
+            </div>
+            
+            <!-- Location -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-map-marker-alt text-2xl text-purple-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Location</h3>
+                <p class="text-gray-600">
+                    123 Healthcare Street<br>
+                    Medical District, MD 12345<br>
+                    United States
+                </p>
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold mt-4 inline-block">Get Directions</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Form & Hours -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-16">
+            <!-- Contact Form -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
+                <form class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                            <input type="text" id="first_name" name="first_name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="email" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    </div>
+                    
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                        <select id="subject" name="subject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            <option value="">Select a subject</option>
+                            <option value="appointment">Appointment Request</option>
+                            <option value="general">General Inquiry</option>
+                            <option value="billing">Billing Question</option>
+                            <option value="feedback">Feedback</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                        <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Please describe how we can help you..." required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        Send Message
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Hours & Additional Info -->
+            <div class="space-y-8">
+                <!-- Hours -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Office Hours</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span class="font-medium text-gray-900">Monday - Friday</span>
+                            <span class="text-gray-600">8:00 AM - 8:00 PM</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span class="font-medium text-gray-900">Saturday</span>
+                            <span class="text-gray-600">9:00 AM - 5:00 PM</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span class="font-medium text-gray-900">Sunday</span>
+                            <span class="text-gray-600">9:00 AM - 3:00 PM</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="font-medium text-red-600">Emergency Care</span>
+                            <span class="text-red-600 font-semibold">24/7</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Emergency Info -->
+                <div class="bg-red-50 border border-red-200 rounded-2xl p-8">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-exclamation-triangle text-2xl text-red-600 mr-3"></i>
+                        <h3 class="text-xl font-bold text-red-800">Emergency Care</h3>
+                    </div>
+                    <p class="text-red-700 mb-4">
+                        For life-threatening emergencies, call 911 immediately or visit our emergency department.
+                    </p>
+                    <div class="space-y-2">
+                        <p class="text-red-700"><strong>Emergency Line:</strong> +1 (234) 567-8911</p>
+                        <p class="text-red-700"><strong>Location:</strong> Emergency Department, Ground Floor</p>
+                    </div>
+                </div>
+                
+                <!-- Insurance Info -->
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-8">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-shield-alt text-2xl text-blue-600 mr-3"></i>
+                        <h3 class="text-xl font-bold text-blue-800">Insurance & Billing</h3>
+                    </div>
+                    <p class="text-blue-700 mb-4">
+                        We accept most major insurance plans. Contact us to verify your coverage.
+                    </p>
+                    <div class="space-y-2">
+                        <p class="text-blue-700">• Medicare & Medicaid accepted</p>
+                        <p class="text-blue-700">• Payment plans available</p>
+                        <p class="text-blue-700">• Financial assistance programs</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Find Us</h2>
+            <p class="text-xl text-gray-600">
+                Conveniently located in the heart of the medical district with ample parking.
+            </p>
+        </div>
+        
+        <!-- Map Placeholder -->
+        <div class="bg-gray-200 rounded-2xl h-96 flex items-center justify-center">
+            <div class="text-center">
+                <i class="fas fa-map text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500">Interactive map would be displayed here</p>
+                <p class="text-sm text-gray-400 mt-2">123 Healthcare Street, Medical District, MD 12345</p>
+            </div>
+        </div>
+        
+        <!-- Directions -->
+        <div class="grid md:grid-cols-3 gap-8 mt-12">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-car text-blue-600"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 mb-2">By Car</h3>
+                <p class="text-gray-600 text-sm">Free parking available in our covered garage. Valet service during business hours.</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-bus text-green-600"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 mb-2">Public Transit</h3>
+                <p class="text-gray-600 text-sm">Accessible via Metro Line 2, Medical Center Station. 5-minute walk from the station.</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-wheelchair text-purple-600"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 mb-2">Accessibility</h3>
+                <p class="text-gray-600 text-sm">Fully accessible facility with wheelchair access, elevators, and accessible parking spaces.</p>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

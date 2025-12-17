@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add New Doctor - Clinic Management System{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Floating Action Button for Mobile -->
+        <div class="fixed bottom-6 right-6 z-50 md:hidden">
+            <button type="submit" form="doctorForm" class="p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transform transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+            </button>
+        </div>
+        
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden mb-8 transform transition-all hover:shadow-2xl">
+            <div class="p-6 sm:p-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">New Doctor Registration</h1>
+                        <p class="mt-1 text-sm text-gray-600">Complete the form to add a new doctor to the system</p>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <!-- Messages -->
+            {% if messages %}
+                <div class="p-6">
+                    {% for message in messages %}
+                        <div class="mb-4 p-4 rounded-md {% if message.tags == 'success' %}bg-green-50 border-l-4 border-green-400 text-green-700{% else %}bg-red-50 border-l-4 border-red-400 text-red-700{% endif %}">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 {% if message.tags == 'success' %}text-green-400{% else %}text-red-400{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm">{{ message }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form id="doctorForm" method="post" class="divide-y divide-gray-200/50">
+                {% csrf_token %}
+                
+                <!-- Account Information Section -->
+                <div class="p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100">
+                                <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-lg font-semibold text-gray-900">Account Information</h3>
+                            <p class="text-sm text-gray-500">Basic details to create doctor account</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
+                        <!-- Email Field -->
+                        <div class="relative group">
+                            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl opacity-75 group-hover:opacity-100 transition duration-200 blur-sm"></div>
+                            <div class="relative bg-white p-0.5 rounded-xl">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                        </svg>
+                                    </div>
+                                    {{ user_form.email }}
+                                    <label for="id_email" class="absolute left-0 -top-5 text-sm text-blue-600">
+                                        Email <span class="text-red-500">*</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phone Field -->
+                        <div class="relative group">
+                            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl opacity-75 group-hover:opacity-100 transition duration-200 blur-sm"></div>
+                            <div class="relative bg-white p-0.5 rounded-xl">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                                        </svg>
+                                    </div>
+                                    {{ user_form.phone }}
+                                    <label for="id_phone" class="absolute left-0 -top-5 text-sm text-blue-600">
+                                        Phone
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- First Name Field -->
+                        <div class="relative group">
+                            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl opacity-75 group-hover:opacity-100 transition duration-200 blur-sm"></div>
+                            <div class="relative bg-white p-0.5 rounded-xl">
+                                <div class="relative">
+                                    {{ user_form.first_name }}
+                                    <label for="id_first_name" class="absolute left-0 -top-5 text-sm text-blue-600">
+                                        First Name <span class="text-red-500">*</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Last Name Field -->
+                        <div class="relative group">
+                            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl opacity-75 group-hover:opacity-100 transition duration-200 blur-sm"></div>
+                            <div class="relative bg-white p-0.5 rounded-xl">
+                                <div class="relative">
+                                    {{ user_form.last_name }}
+                                    <label for="id_last_name" class="absolute left-0 -top-5 text-sm text-blue-600">
+                                        Last Name <span class="text-red-500">*</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password Fields -->
+                        <div class="relative group">
+                            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl opacity-75 group-hover:opacity-100 transition duration-200 blur-sm"></div>
+                            <div class="relative bg-white p-0.5 rounded-xl">
+                                <div class="relative">
+                                    {{ user_form.password1 }}
+                                    <label for="id_password1" class="absolute left-0 -top-5 text-sm text-blue-600">
+                                        Password <span class="text-red-500">*</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative group">
+                            <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl opacity-75 group-hover:opacity-100 transition duration-200 blur-sm"></div>
+                            <div class="relative bg-white p-0.5 rounded-xl">
+                                <div class="relative">
+                                    {{ user_form.password2 }}
+                                    <label for="id_password2" class="absolute left-0 -top-5 text-sm text-blue-600">
+                                        Confirm Password <span class="text-red-500">*</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Information Section -->
+                <div class="p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-10 w-10 rounded-full bg-green-100">
+                                <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-lg font-semibold text-gray-900">Professional Information</h3>
+                            <p class="text-sm text-gray-500">Medical credentials and details</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2">
+                        <div>
+                            <label for="id_license_number" class="block text-sm font-medium text-gray-700 mb-2">
+                                License Number <span class="text-red-500">*</span>
+                            </label>
+                            {{ doctor_form.license_number }}
+                        </div>
+
+                        <div>
+                            <label for="id_gender" class="block text-sm font-medium text-gray-700 mb-2">
+                                Gender <span class="text-red-500">*</span>
+                            </label>
+                            {{ doctor_form.gender }}
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="id_specialization" class="block text-sm font-medium text-gray-700 mb-2">
+                                Specialization <span class="text-red-500">*</span>
+                            </label>
+                            {{ doctor_form.specialization }}
+                        </div>
+
+                        <div>
+                            <label for="id_experience" class="block text-sm font-medium text-gray-700 mb-2">
+                                Experience (Years) <span class="text-red-500">*</span>
+                            </label>
+                            {{ doctor_form.experience }}
+                        </div>
+
+                        <div>
+                            <label for="id_consultation_fee" class="block text-sm font-medium text-gray-700 mb-2">
+                                Consultation Fee <span class="text-red-500">*</span>
+                            </label>
+                            {{ doctor_form.consultation_fee }}
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="id_bio" class="block text-sm font-medium text-gray-700 mb-2">
+                                Bio
+                            </label>
+                            {{ doctor_form.bio }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="px-8 py-6 bg-gray-50 flex justify-between items-center">
+                    <a href="{% url 'dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </a>
+                    <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                        <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Add Doctor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

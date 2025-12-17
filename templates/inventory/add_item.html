@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Add Inventory Item - ClinicMS{% endblock %}
+
+{% block content %}
+<div class="flex-1 overflow-y-auto bg-gray-50 p-4">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">Add New Inventory Item</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Add a new item to your medical inventory</p>
+            </div>
+            <a href="{% url 'inventory:dashboard' %}" class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Inventory
+            </a>
+        </div>
+
+        <!-- Add Item Form -->
+        <div class="bg-white rounded-xl border border-gray-100">
+            <div class="px-5 py-3 border-b border-gray-100">
+                <h3 class="text-base font-medium text-gray-900">Item Details</h3>
+            </div>
+            
+            <form method="POST" class="p-4">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Item Name -->
+                    <div class="md:col-span-3">
+                        <label for="name" class="block text-xs font-medium text-gray-500 mb-1">
+                            Item Name <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="name" id="name" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="e.g., Paracetamol 500mg Tablets">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="md:col-span-3">
+                        <label for="description" class="block text-xs font-medium text-gray-500 mb-1">
+                            Description
+                        </label>
+                        <textarea name="description" id="description" rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="Brief description of the item"></textarea>
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label for="category" class="block text-xs font-medium text-gray-500 mb-1">
+                            Category <span class="text-red-500">*</span>
+                        </label>
+                        <select name="category" id="category" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select Category</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Supplier -->
+                    <div>
+                        <label for="supplier" class="block text-xs font-medium text-gray-500 mb-1">
+                            Supplier
+                        </label>
+                        <select name="supplier" id="supplier"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select Supplier</option>
+                            {% for supplier in suppliers %}
+                                <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Unit -->
+                    <div>
+                        <label for="unit" class="block text-xs font-medium text-gray-500 mb-1">
+                            Unit <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="unit" id="unit" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="e.g., tablets, pieces, boxes, ml">
+                    </div>
+
+                    <!-- Price per Unit -->
+                    <div>
+                        <label for="price_per_unit" class="block text-xs font-medium text-gray-500 mb-1">
+                            Price per Unit ($) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="price_per_unit" id="price_per_unit" step="0.01" min="0" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="0.00">
+                    </div>
+
+                    <!-- Quantity in Stock -->
+                    <div>
+                        <label for="quantity_in_stock" class="block text-xs font-medium text-gray-500 mb-1">
+                            Initial Quantity <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="quantity_in_stock" id="quantity_in_stock" min="0" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="0">
+                    </div>
+
+                    <!-- Minimum Quantity -->
+                    <div>
+                        <label for="minimum_quantity" class="block text-xs font-medium text-gray-500 mb-1">
+                            Minimum Quantity <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="minimum_quantity" id="minimum_quantity" min="1" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="5">
+                        <p class="text-[11px] text-gray-500 mt-0.5">Alert when stock falls below this level</p>
+                    </div>
+
+                    <!-- Location -->
+                    <div>
+                        <label for="location" class="block text-xs font-medium text-gray-500 mb-1">
+                            Storage Location
+                        </label>
+                        <input type="text" name="location" id="location"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="e.g., Pharmacy - Shelf A1">
+                    </div>
+
+                    <!-- Barcode -->
+                    <div>
+                        <label for="barcode" class="block text-xs font-medium text-gray-500 mb-1">
+                            Barcode
+                        </label>
+                        <input type="text" name="barcode" id="barcode"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Optional barcode">
+                    </div>
+
+                    <!-- Expiry Date -->
+                    <div>
+                        <label for="expiry_date" class="block text-xs font-medium text-gray-500 mb-1">
+                            Expiry Date
+                        </label>
+                        <input type="date" name="expiry_date" id="expiry_date"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <p class="text-[11px] text-gray-500 mt-0.5">Leave blank if item doesn't expire</p>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex justify-end space-x-2 mt-6 pt-4 border-t border-gray-100">
+                    <a href="{% url 'inventory:dashboard' %}" class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-plus mr-2"></i> Add Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

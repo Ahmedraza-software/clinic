@@ -1,0 +1,342 @@
+{% extends 'doctors/base_doctor.html' %}
+{% load static %}
+
+{% block doctor_title %}Dashboard{% endblock %}
+
+{% block doctor_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Dashboard</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                    <i class="far fa-calendar-alt me-1"></i>
+                    This week
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Today's Appointments</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ appointments_today.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Upcoming Appointments</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ upcoming_appointments.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Total Patients</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ request.user.doctor.patients.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-injured fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pending Tasks</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Appointments -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Today's Appointments</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" 
+                       data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" 
+                         aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" href="{% url 'doctors:appointment_list' %}">
+                            <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i> View All
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-file-export fa-sm fa-fw mr-2 text-gray-400"></i> Export
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if appointments_today %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments_today %}
+                                    <tr>
+                                        <td>{{ appointment.appointment_time|time:"g:i A" }}</td>
+                                        <td>
+                                            <a href="{% url 'doctors:patient_detail' appointment.patient.id %}" 
+                                               class="text-primary">
+                                                {{ appointment.patient.user.get_full_name|default:appointment.patient.user.username }}
+                                            </a>
+                                        </td>
+                                        <td>{{ appointment.get_appointment_type_display }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ appointment.status|get_status_badge }}">
+                                                {{ appointment.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'doctors:appointment_detail' appointment.id %}" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               data-bs-toggle="tooltip" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="far fa-calendar-check fa-3x text-gray-300 mb-3"></i>
+                        <p class="text-muted">No appointments scheduled for today.</p>
+                        <a href="{% url 'doctors:appointment_list' %}" class="btn btn-primary">
+                            View All Appointments
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Appointments & Recent Activity -->
+<div class="row">
+    <!-- Upcoming Appointments -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="m-0 font-weight-bold text-primary">Upcoming Appointments</h6>
+                    <small class="text-muted">Showing next 2 appointments</small>
+                </div>
+                <a href="{% url 'doctors:appointment_list' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if upcoming_appointments %}
+                    <div class="list-group list-group-flush">
+                        {% for appointment in upcoming_appointments|slice:":2" %}
+                            <a href="{% url 'doctors:appointment_detail' appointment.id %}" 
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        {{ appointment.patient.user.get_full_name|default:appointment.patient.user.username }}
+                                    </h6>
+                                    <small class="text-muted">
+                                        {{ appointment.appointment_date|date:"M d" }} at {{ appointment.appointment_time|time:"g:i A" }}
+                                    </small>
+                                </div>
+                                <p class="mb-1">
+                                    <span class="badge bg-{{ appointment.status|get_status_badge }} me-2">
+                                        {{ appointment.get_status_display }}
+                                    </span>
+                                    {{ appointment.get_appointment_type_display }}
+                                </p>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="far fa-calendar-plus fa-3x text-gray-300 mb-3"></i>
+                        <p class="text-muted">No upcoming appointments scheduled.</p>
+                        <a href="{% url 'appointments:book' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Book Appointment
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_appointments %}
+                    <div class="timeline">
+                        {% for appointment in recent_appointments %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-calendar-check text-{{ appointment.status|get_status_badge }}"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'doctors:patient_detail' appointment.patient.id %}" 
+                                               class="text-primary">
+                                                {{ appointment.patient.user.get_full_name|default:appointment.patient.user.username }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">
+                                            {{ appointment.updated_at|timesince }} ago
+                                        </small>
+                                    </div>
+                                    <p class="mb-1">
+                                        <span class="badge bg-{{ appointment.status|get_status_badge }}">
+                                            {{ appointment.get_status_display }}
+                                        </span>
+                                        {{ appointment.get_appointment_type_display }}
+                                    </p>
+                                    <p class="text-muted small mb-0">
+                                        {{ appointment.notes|truncatewords:15|default:"No notes provided." }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="far fa-clock fa-3x text-gray-300 mb-3"></i>
+                        <p class="text-muted">No recent activity to display.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+        margin: 0 0 0 1rem;
+        border-left: 2px solid #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -2.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        text-align: center;
+        background: #fff;
+        line-height: 1.5rem;
+    }
+    
+    .timeline-content {
+        padding-left: 1rem;
+    }
+    
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    
+    .bg-scheduled { background-color: #6c757d !important; }
+    .bg-confirmed { background-color: #0d6efd !important; }
+    .bg-in_progress { background-color: #fd7e14 !important; }
+    .bg-completed { background-color: #198754 !important; }
+    .bg-cancelled { background-color: #dc3545 !important; }
+    .bg-no_show { background-color: #212529 !important; }
+    
+    .text-scheduled { color: #6c757d !important; }
+    .text-confirmed { color: #0d6efd !important; }
+    .text-in_progress { color: #fd7e14 !important; }
+    .text-completed { color: #198754 !important; }
+    .text-cancelled { color: #dc3545 !important; }
+    .text-no_show { color: #212529 !important; }
+    
+    .border-left-primary { border-left: 0.25rem solid #4e73df !important; }
+    .border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+    .border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+    .border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // Enable tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}
